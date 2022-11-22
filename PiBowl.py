@@ -6,7 +6,7 @@ from tkinter import messagebox
 import threading
 from pynput import keyboard
 from os import path, system
-import queue
+
 
 #Constants
 virtualized=True
@@ -32,7 +32,7 @@ inGame=False
 timing=False			#Currently counting down the timer
 deciding=False			#Right/Wrong decision
 buzzable=0			#Can be zero for no one, 1 for team 1, 2 for team 2, or -1 for all
-buzzedIn=-1			#-1 for none, 0-9 for buzzers
+#buzzedIn=-1			#-1 for none, 0-9 for buzzers
 interrupted=False
 firstWrong=False
 wrongLimit=0
@@ -176,56 +176,52 @@ def buzzercheck():
 
 
 def virtualPress(i):
-	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
-		state, bigLabel, bigString, team1color, team2color, team3color, team4color, team5color, team6color, inGame, timing, fifo, buzzable, interrupted
+	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, buzzed_in_queue, deciding, \
+		state, bigLabel, bigString, team1color, team2color, team3color, team4color, team5color, team6color, inGame, timing, buzzable, interrupted
 	print("buzzable=",buzzable)
 	if buzzable==-1 or buzzable==int(i/6)+1:
 		if inGame:
 			buzzable=-1
 			deciding=True
 			timeLeft=int(timeString.get())
+		buzzable=-1
 		humanBuzzerNum=i+1
-		if humanBuzzerNum>7:
-			humanBuzzerNum-=7
+		if humanBuzzerNum>6:
+			humanBuzzerNum-=6
 		interrupted=not timing
 		timing=False
 		buzzerString.set("Locked: Buzzer "+str(humanBuzzerNum))
 		threading.Thread(target=flashLock, args=(i,)).start()
 		threading.Thread(target=playsound, args=(i,)).start()
 		bigString.set(humanBuzzerNum)
-		state=i
+		#state=i
 		#print("state"+str(i))
-		
+#		buzzedIn=i
+		setButtons()
 		if i in range(0,1):
+			buzzed_in_queue.append(1)			
 			bigLabel.config(bg=team1color)
-			buzzed_in_queue.append(1)
-			print(buzzed_in_queue)
 		if i in range(1,2):
+			buzzed_in_queue.append(2)			
 			bigLabel.config(bg=team2color)
-			buzzed_in_queue.append(2)
-			print(buzzed_in_queue)            
 		if i in range(2,3):
+			buzzed_in_queue.append(3)			
 			bigLabel.config(bg=team3color)
-			buzzed_in_queue.append(3)
-			print(buzzed_in_queue)
 		if i in range(3,4):
+			buzzed_in_queue.append(4)			
 			bigLabel.config(bg=team4color)
-			buzzed_in_queue.append(4)
-			print(buzzed_in_queue)
 		if i in range(4,5):
-			bigLabel.config(bg=team5color)
-			buzzed_in_queue.append(5)		
-			print(buzzed_in_queue)
+			buzzed_in_queue.append(5)			
+			bigLabel.config(bg=team5color)		
 		if i in range(5,6):
-			bigLabel.config(bg=team6color)
-			buzzed_in_queue.append(6)	
-			print(buzzed_in_queue)
+			buzzed_in_queue.append(6)			
+			bigLabel.config(bg=team6color)	
             
 def flashLock(i):
 	global locked, buttons, buzzedIn, buzzed_in_queue
 	colorb = buttons[i].cget('bg')
 	flashb = buttons[i].cget('activebackground')
-	while buzzed_in_queue[0]==i:
+	while i in buzzed_in_queue:
 		buttons[i].config(bg=flashb)
 		sleep(.4)
 		buttons[i].config(bg=colorb)
@@ -271,7 +267,7 @@ def open():
 	#timeString.zfill
 	#print("open")
 	buzzable=-1
-	buzzed_in_queue = []
+#	buzzedIn=-1
 	deciding=False
 	bigString.set("")
 	bigLabel.config(bg=top.cget('bg'))
@@ -374,19 +370,17 @@ def wrong():
 		changeQuestion(1)
 		addScores()
 		wrongLimit=0
+		buzzed_in_queue = []
 		reset(True)
 	else:
 		wrongLimit = ((wrongLimit)+1)
-
-		buzzable=buzzed_in_queue[0]
+		buzzed_in_queue.pop(0)
+#		buzzable=int(buzzedIn/6)+1
+		buzzable=-1
 		if buzzable == 1:
 			buzzable=1 #MCCALLUM - This used to be two. There are only two lock states in the game. We need more.
-			buzzed_in_queue.pop(0)
-			
 		else:
-			buzzable=-1
-		
-        
+			buzzable=1
 
 		print(buzzable)
 		if interrupted:
@@ -400,7 +394,7 @@ def wrong():
 			print("Resuming Countdown...")
 			timeLeft = timeLeft+5
 		setTimeString(timeLeft)
-		buzzed_in_queue=[]
+#		buzzedIn=-1
 		deciding=False
 		addScores()
 		setButtons()
