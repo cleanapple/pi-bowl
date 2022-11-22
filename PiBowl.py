@@ -37,7 +37,7 @@ interrupted=False
 firstWrong=False
 wrongLimit=0
 question=0
-buzzed_in_queue = []
+
 
 if virtualized==False:
     import RPi.GPIO as GPIO
@@ -114,8 +114,6 @@ locked = True
 
 print("test")
 
-
-
 def espeak(string):
 	threading.Thread(target=system, args=("espeak "+string, )).start()
 
@@ -176,7 +174,7 @@ def buzzercheck():
 
 
 def virtualPress(i):
-	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, buzzed_in_queue, deciding, \
+	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
 		state, bigLabel, bigString, team1color, team2color, team3color, team4color, team5color, team6color, inGame, timing, buzzable, interrupted
 	print("buzzable=",buzzable)
 	if buzzable==-1 or buzzable==int(i/6)+1:
@@ -365,7 +363,7 @@ def wrong_no_interrupt():
 
 def wrong():
 	global timeLeft, locked, timestart, state, timing, timeString, minus5, \
-		deciding, buzzedIn, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
+		deciding, buzzedIn,buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
     
 
 	
