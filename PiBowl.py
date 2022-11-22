@@ -32,7 +32,7 @@ inGame=False
 timing=False			#Currently counting down the timer
 deciding=False			#Right/Wrong decision
 buzzable=0			#Can be zero for no one, 1 for team 1, 2 for team 2, or -1 for all
-#buzzedIn=-1			#-1 for none, 0-9 for buzzers
+buzzedIn=-1			#-1 for none, 0-9 for buzzers
 interrupted=False
 firstWrong=False
 wrongLimit=0
@@ -186,36 +186,42 @@ def virtualPress(i):
 			timeLeft=int(timeString.get())
 		buzzable=-1
 		humanBuzzerNum=i+1
-		if humanBuzzerNum>6:
-			humanBuzzerNum-=6
+		if humanBuzzerNum>7:
+			humanBuzzerNum-=7
 		interrupted=not timing
 		timing=False
 		buzzerString.set("Locked: Buzzer "+str(humanBuzzerNum))
 		threading.Thread(target=flashLock, args=(i,)).start()
 		threading.Thread(target=playsound, args=(i,)).start()
-		bigString.set(humanBuzzerNum)
-		#state=i
+				#state=i
 		#print("state"+str(i))
-#		buzzedIn=i
+		buzzedIn=i
 		setButtons()
 		if i in range(0,1):
 			buzzed_in_queue.append(1)			
 			bigLabel.config(bg=team1color)
+			print(buzzed_in_queue)
 		if i in range(1,2):
 			buzzed_in_queue.append(2)			
 			bigLabel.config(bg=team2color)
+			print(buzzed_in_queue)
 		if i in range(2,3):
 			buzzed_in_queue.append(3)			
 			bigLabel.config(bg=team3color)
+			print(buzzed_in_queue)            
 		if i in range(3,4):
 			buzzed_in_queue.append(4)			
 			bigLabel.config(bg=team4color)
+			print(buzzed_in_queue)            
 		if i in range(4,5):
 			buzzed_in_queue.append(5)			
-			bigLabel.config(bg=team5color)		
+			bigLabel.config(bg=team5color)
+			print(buzzed_in_queue)		
 		if i in range(5,6):
 			buzzed_in_queue.append(6)			
-			bigLabel.config(bg=team6color)	
+			bigLabel.config(bg=team6color)
+			print(buzzed_in_queue)
+		bigString.set(buzzed_in_queue)	
             
 def flashLock(i):
 	global locked, buttons, buzzedIn, buzzed_in_queue
@@ -339,8 +345,8 @@ def falseStart():
 def correct():
 	global scores, buzzedIn, buzzed_in_queue, plus10, question, wrongLimit, firstWrong
 
-	scores[buzzed_in_queue[0]][question].config(bg="#77ff77")
-	setLabel(scores[buzzed_in_queue[0]][question], "+1")
+	scores[buzzed_in_queue[0]-1][question].config(bg="#77ff77")
+	setLabel(scores[buzzed_in_queue[0]-1][question], "+1")
 	wrongLimit=0
 	buzzed_in_queue = []
 	changeQuestion(1)
@@ -364,7 +370,7 @@ def wrong():
 
 	
 	if wrongLimit == (TEAMS)-1:		#This is the second wrong answer, so proceed to next question
-		setLabel(scores[buzzed_in_queue[0]][question], "0")
+		setLabel(scores[buzzed_in_queue[0]-1][question], "0")
 		firstWrong=False
 		print("Next question")
 		changeQuestion(1)
@@ -374,28 +380,31 @@ def wrong():
 		reset(True)
 	else:
 		wrongLimit = ((wrongLimit)+1)
-		buzzed_in_queue.pop(0)
-#		buzzable=int(buzzedIn/6)+1
-		buzzable=-1
-		if buzzable == 1:
-			buzzable=1 #MCCALLUM - This used to be two. There are only two lock states in the game. We need more.
-		else:
-			buzzable=1
+		
 
-		print(buzzable)
+#		buzzable=int(buzzedIn/6)+1
+#		buzzable=-1
+#		if buzzable == 1:
+#			buzzable=-1 #MCCALLUM - This used to be two. There are only two lock states in the game. We need more.
+#		else:
+#			buzzable=-1
+
+#		print(buzzable)
 		if interrupted:
-			scores[buzzed_in_queue[0]][question].config(bg="#ff7777")
-			scores[buzzed_in_queue[0]][question].config(textvariable=minus5)
+			scores[buzzed_in_queue[0]-1][question].config(bg="#ff7777")
+			scores[buzzed_in_queue[0]-1][question].config(textvariable=minus5)
 			reset(False)
+			buzzed_in_queue.pop(0)
+			print(buzzed_in_queue)                       
 			#print("Resetting...")
 		else:
-			setLabel(scores[buzzed_in_queue[0]][question], "0")
-			startCountdown()
+			setLabel(scores[buzzed_in_queue[0]-1][question], "0")
+			startCountdown()			
 			print("Resuming Countdown...")
 			timeLeft = timeLeft+5
 		setTimeString(timeLeft)
 #		buzzedIn=-1
-		deciding=False
+		deciding=True
 		addScores()
 		setButtons()
 
@@ -663,7 +672,7 @@ qplusButton.grid(row=0, column=3, padx=20)
 
 
 bigString=StringVar()
-bigString.set("6")
+bigString.set("12")
 bigLabel=Label(top, textvariable=bigString, bg="#cccccc", padx=10, pady=10, font=bigfont)
 bigLabel.grid(row=9, sticky='nesw', column=0, columnspan=11)
 #bigLabel.pack(side='bottom', fill=BOTH)
