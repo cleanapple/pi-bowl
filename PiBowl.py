@@ -13,15 +13,6 @@ virtualized=True
 pins=[4, 27, 22, 23, 24, 25, 5, 6, 12, 26]
 #A, B, C, D, E, F, Yes, No, Edit Score, Next Question
 
-team1color="#88ff88"
-team2color="#aaaaff"
-team3color="#fcb900"
-team4color="#eb9694"
-team5color="#fff000"
-team6color="#bed3f3"
-#list exists below, remove when not needed or referenced
-
-
 #STATE VARIABLES
 inGame=True
 timing=False			#Currently counting down the timer
@@ -201,7 +192,7 @@ def buzzercheck():
 
 def virtualPress(i):
 	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
-		state, bigLabel, bigString, buzzlock, team1color, team2color, team3color, team4color, team5color, team6color, inGame, timing, buzzable, interrupted
+		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, interrupted
 	print("buzzable=",buzzable)
 	if buzzable==-1 or buzzable==int(i/6)+1:
 		if inGame:
@@ -219,7 +210,7 @@ def virtualPress(i):
 
 		if i not in buzzlock:
 			if i == 0 and i not in buzzlock:
-#				buzzed_in_queue.append(1)
+				buzzed_in_queue.append(1)
 				buzzlock.append(i)
 			if i == 1 and i not in buzzlock:
 				buzzed_in_queue.append(2)
@@ -300,7 +291,6 @@ def open():
 	#If ingame, the buzzin was either a challenge or a mistake.
 	if not inGame:
 		falseStart()
-	#timeString.zfill
 	buzzed_in_queue=[]
 	buzzlock =[]
 	buzzable=-1
@@ -337,7 +327,9 @@ def setButtons(): #AND LABELS TOO
 	if buzzable==1:
 		for i in range(0,6):
 				buttons[i].config(state=NORMAL)
-#	if buzzable==2:
+
+#MCCALLUM NOT SURE WHAT TO DO HERE TO PREVENT ERRORS WITH PINS 6-9
+#	if buzzable==2: 
 #		for i in range(6,10):
 #				buttons[i].config(state=NORMAL)
 
@@ -366,7 +358,7 @@ def falseStart():
 	setButtons()
 
 def correct():
-	global scores, buzzedIn, buzzlock, buzzed_in_queue, plus10, question, wrongLimit, firstWrong
+	global scores, buzzedIn, buzzlock, buzzed_in_queue, plus1, question, wrongLimit, firstWrong
 
 	scores[buzzed_in_queue[0]-1][question].config(bg="#77ff77")
 	setLabel(scores[buzzed_in_queue[0]-1][question], "+1")
@@ -388,7 +380,7 @@ def wrong_no_interrupt():
 	wrong()
 
 def wrong():
-	global timeLeft, locked, timestart, state, timing, timeString, minus5, \
+	global timeLeft, locked, timestart, state, timing, timeString, minus0, \
 		deciding, buzzedIn, buzzlock, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
 
 	if wrongLimit == (TEAMS)-1:		#This is the second wrong answer, so proceed to next question
@@ -457,7 +449,6 @@ def monitorScoresThread():
 
 def addScores():
 	global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label,leftFrame, rightFrame
-	#Left side scores MCCALLUM - I need to find how to display more score boxes in frames.
 	try:
 		sum=0
 		for y in range(0,1):
@@ -473,7 +464,6 @@ def addScores():
 		setLabel(score1Label, "Team 1: "+str(sum))
 	except IndexError:
 		print("IndexError")
-	#Right side scores
 	try:
 		sum=0
 		for y in range(1,2):
@@ -563,22 +553,22 @@ def colorCell(cell):
 		cell.config(bg=leftframe.cget('bg'))
 
 
-def time_plus():
-	global timeLeft
-	timeLeft = timeLeft+5
-	setTimeString(str(int(timeLeft)))
+#def time_plus():
+#	global timeLeft
+#	timeLeft = timeLeft+5
+#	setTimeString(str(int(timeLeft)))
 
-def time_minus():
-	global timeLeft
-	timeLeft = timeLeft-5
-	setTimeString(str(int(timeLeft)))
+#def time_minus():
+#	global timeLeft
+#	timeLeft = timeLeft-5
+#	setTimeString(str(int(timeLeft)))
 
 def configure():
 	print("configuring")
 
 
-def addIndividualScores():
-	print("Nothing here yet")
+#def addIndividualScores():
+#	print("Nothing here yet")
 
 
 def dumpScores():
@@ -606,8 +596,6 @@ def make3String(string):
 		return "__ "
 
 
-
-
 top=Tk()
 
 top.option_add('*Dialog.msg.font', 'Sans 10')
@@ -630,7 +618,7 @@ plusButton=Button(timeFrame, text="+", width=1, command=countmore, font=mediumfo
 plusButton.grid(row=0, column=3, padx=10)
 falseStartButton=Button(timeFrame, text="Reset", width=6, command=falseStart)
 falseStartButton.grid(row=1, column=2)
-#timeLabel.pack()
+
 
 
 buzzerString=StringVar()
@@ -645,11 +633,9 @@ newGameButton.grid(row=1, column=5)
 
 #timerButton = Button(top, text="Start Countdown", command=startCountdown, state=DISABLED)
 #timerButton.grid(row=2, column=5)
-#timerButton.pack()
 
-correctButton = Button(top, text="Correct", command=correct, background="#22ff22", font=bigfont)
+correctButton = Button(top, text="Right!", command=correct, background="#99ca9f", font=bigfont)
 correctButton.grid(row=2, column=5)
-#correctButton.pack()
 
 wrongFrame = Frame(top)
 wrongFrame.grid(row=3, column=5)
@@ -657,9 +643,7 @@ wrongButton = Button(wrongFrame, text="Wrong", justify="center", command=wrong, 
 wrongButton.grid(row=0, column=1, padx=0)
 #wrong2Button = Button(wrongFrame, width=14, text="(but not interrupted)", command=wrong_no_interrupt, bg="#ff6666")
 #wrong2Button.grid(row=1, column=0, padx=0)
-#wrongButton.pack()
 
-#Label(top).pack()
 
 openButton = Button(wrongFrame, text="Open buzzers", command=open, bg="#00ffff", width=10)
 openButton.grid(row=2, column=1)
@@ -683,7 +667,6 @@ bigString=StringVar()
 bigString.set("12")
 bigLabel=Label(top, textvariable=bigString, bg="#cccccc", padx=10, pady=10, font=bigfont)
 bigLabel.grid(row=4, sticky='nesw', column=0, columnspan=5)
-#bigLabel.pack(side='bottom', fill=BOTH)
 
 
 threading.Thread(target=timer, args=()).start()
@@ -696,8 +679,8 @@ questionnum=6
 leftframe=Frame(top)
 leftframe.grid(row=0, column=0, rowspan=15, columnspan=4, sticky='n')
 #leftframe.grid(row=0, column=0)
-for i in range(0,1):
-	buttons.append(Button(leftframe, text=str(i+1), bg=team1color,
+for i in range(0,6):
+	buttons.append(Button(leftframe, text=str(i+1), bg=teamcolors[i],
 		command=lambda i=i: virtualPress(i)))
 	buttons[i].grid(row=200, column=i)
 	scores.append([])
@@ -708,68 +691,8 @@ for i in range(0,1):
 		scores[i].append(e)
 		e.grid(row=j, column=i, pady=0, padx=0)
 		#print("created",i,j)
-for i in range(1,2):
-	buttons.append(Button(leftframe, text=str(i+1), bg=team2color,
-		command=lambda i=i: virtualPress(i)))
-	buttons[i].grid(row=200, column=i)
-	scores.append([])
-	for j in range(0,questionnum):
-		string=StringVar()
-		#string.set(str(i)+str(j))
-		e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
-		scores[i].append(e)
-		e.grid(row=j, column=i, pady=0, padx=0)
-		#print("created",i,j)
-for i in range(2,3):
-	buttons.append(Button(leftframe, text=str(i+1), bg=team3color,
-		command=lambda i=i: virtualPress(i)))
-	buttons[i].grid(row=200, column=i)
-	scores.append([])
-	for j in range(0,questionnum):
-		string=StringVar()
-		#string.set(str(i)+str(j))
-		e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
-		scores[i].append(e)
-		e.grid(row=j, column=i, pady=0, padx=0)
-		#print("created",i,j)
-for i in range(3,4):
-	buttons.append(Button(leftframe, text=str(i+1), bg=team4color,
-		command=lambda i=i: virtualPress(i)))
-	buttons[i].grid(row=200, column=i)
-	scores.append([])
-	for j in range(0,questionnum):
-		string=StringVar()
-		#string.set(str(i)+str(j))
-		e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
-		scores[i].append(e)
-		e.grid(row=j, column=i, pady=0, padx=0)
-		#print("created",i,j)
-for i in range(4,5):
-	buttons.append(Button(leftframe, text=str(i+1), bg=team5color,
-		command=lambda i=i: virtualPress(i)))
-	buttons[i].grid(row=200, column=i)
-	scores.append([])
-	for j in range(0,questionnum):
-		string=StringVar()
-		#string.set(str(i)+str(j))
-		e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
-		scores[i].append(e)
-		e.grid(row=j, column=i, pady=0, padx=0)
-		#print("created",i,j)
-for i in range(5,6):
-	buttons.append(Button(leftframe, text=str(i+1), bg=team6color,
-		command=lambda i=i: virtualPress(i)))
-	buttons[i].grid(row=200, column=i)
-	scores.append([])
-	for j in range(0,questionnum):
-		string=StringVar()
-		#string.set(str(i)+str(j))
-		e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
-		scores[i].append(e)
-		e.grid(row=j, column=i, pady=0, padx=0)
-		#print("created",i,j)
-#	buttons[i].pack(side='left')        
-#	buttons[i].pack(side='left')
+
+
 dumpScoresButton=Button(leftframe, text="Dump Scores", command=dumpScores)
 dumpScoresButton.grid(row=210, column=0, pady=5, columnspan=5)
 
@@ -784,44 +707,19 @@ teamSub.grid(row=211, column=3, padx=10)
 
 rightframe=Frame(top)
 rightframe.grid(row=0, column=7, rowspan=6, columnspan=100)
-score1Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=team1color, bg="#222222")
+score1Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[0], bg="#222222")
 score1Label.grid(row=1, column=6, columnspan=5, pady=5)
-#score1Label.pack(side="left")
-score2Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=team2color, bg="#222222")
+score2Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[1], bg="#222222")
 score2Label.grid(row=2, column=6, columnspan=5, pady=5)
-#score2Label.pack(side="right")
-score3Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=team3color, bg="#222222")
+score3Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[2], bg="#222222")
 score3Label.grid(row=3, column=6, columnspan=5, pady=5)
-#score3Label.pack(side="right")
-score4Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=team4color, bg="#222222")
+score4Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[3], bg="#222222")
 score4Label.grid(row=4, column=6, columnspan=5, pady=5)
-#score4Label.pack(side="left")
-score5Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=team5color, bg="#222222")
+score5Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[4], bg="#222222")
 score5Label.grid(row=5, column=6, columnspan=5, pady=5)
-#score5Label.pack(side="right")
-score6Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=team6color, bg="#222222")
+score6Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[5], bg="#222222")
 score6Label.grid(row=6, column=6, columnspan=5, pady=5)
-#score6Label.pack(side="right")
 
-#for i in range(6,10):
-#	buttons.append(Button(rightframe, text=str(i-4), bg=team2color,
-#		command=lambda i=i: virtualPress(i)))
-#	buttons[i].grid(row=200, column=i-5)
-#	scores.append([])
-#	for j in range(0,questionnum):
-#		string=StringVar()
-		#string.set(str(i)+str(j))
-#		e = Entry(rightframe, textvariable=string, width=4, bd=1, bg=rightframe.cget('bg'), justify="center")
-#		scores[i].append(e)
-#		e.grid(row=j, column=i-5, pady=0, padx=0)
-		#print("created",i,j)
-    
-        #for i in [9, 8, 7, 6, 5]:  #NEED TO ADD IN OPPOSITE ORDER TO APPEAR CORRECTLY
-
-
-
-#	print("not")
-#	buttons[i].pack(side='right')
 
 
 #scoreFrame
@@ -839,14 +737,12 @@ score6Label.grid(row=6, column=6, columnspan=5, pady=5)
 #indivCheck=Checkbutton(configFrame, text="Show individual scores?", command=configure, variable=i)
 #indivCheck.grid(row=1, column=0, sticky='w')
 
-#dumpScoresButton=Button(rightframe, text="Dump Scores", command=dumpScores) #MCCALLUM Moved to Left side 
-#dumpScoresButton.grid(row=202, column=0, pady=0, columnspan=5) #MCCALLUM Moved to left side
 
-minus5=StringVar()
-minus5.set("0")
+minus0=StringVar()
+minus0.set("0")
 
-plus10=StringVar()
-plus10.set("+1")
+plus1=StringVar()
+plus1.set("+1")
 
 reset(True)
 buzzable=-1
