@@ -26,7 +26,7 @@ wrongLimit=0
 question=0
 buzzed_in_queue = []
 buzzlock = []
-ycybuzzer=19
+buzzer=19
 teamcolors = ["#88ff88", "#aaaaff", "#fcb900", "#eb9694", "#fff000", "#bed3f3"]
 
 
