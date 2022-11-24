@@ -13,6 +13,7 @@ virtualized=True
 pins=[4, 27, 22, 23, 24, 25, 5, 6, 12, 26]
 #A, B, C, D, E, F, Yes, No, Edit Score, Next Question
 
+
 #STATE VARIABLES
 inGame=True
 timing=False			#Currently counting down the timer
@@ -25,7 +26,7 @@ wrongLimit=0
 question=0
 buzzed_in_queue = []
 buzzlock = []
-buzzer=19
+ycybuzzer=19
 teamcolors = ["#88ff88", "#aaaaff", "#fcb900", "#eb9694", "#fff000", "#bed3f3"]
 
 
@@ -139,14 +140,12 @@ def espeak(string):
 
 def timer():
 	global timestart, timeString, TIMELIMIT, timeLeft, locked, \
-		   inGame, timing, buzzable, timeLabel, question, \
-		   timepath
+		   inGame, timing, buzzable, timeLabel, question
 	while True:
 		sleep(.01)
 		if (timing):
 			delta = time()-timestart
 			if delta > timeLeft:
-				threading.Thread(target=playsound, args=(timepath,)).start()
 				buzzable=-1
 				setButtons()
 				setTimeString("00")
