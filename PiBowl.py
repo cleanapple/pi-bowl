@@ -250,13 +250,14 @@ def virtualPress(i):
 
 def flashLock(i):
 	global locked, buttons, buzzedIn, buzzed_in_queue
-	colorb = buttons[i].cget('bg')
-	flashb = buttons[i].cget('activebackground')
-	while i in buzzlock:
-		buttons[i].config(bg=flashb)
-		sleep(.4)
-		buttons[i].config(bg=colorb)
-		sleep(.4)
+	for i in range (0,6):
+		colorb = buttons[i].cget('bg')
+		flashb = buttons[i].cget('activebackground')
+		while i in buzzlock:
+			buttons[i].config(bg=flashb)
+			sleep(.4)
+			buttons[i].config(bg=colorb)
+			sleep(.4)
 
 def playsound(i):
 	global buzzlock
