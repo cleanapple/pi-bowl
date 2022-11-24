@@ -13,18 +13,13 @@ virtualized=True
 pins=[4, 27, 22, 23, 24, 25, 5, 6, 12, 26]
 #A, B, C, D, E, F, Yes, No, Edit Score, Next Question
 
-#sound1Location="/home/pi/sound1.wav"
-#sound2Location="/home/pi/sound2.wav"
-soundpath1=path.abspath("$HOME/Python/frog.wav")
-soundpath2=path.abspath("$HOME/Python/peacock.wav")
-timepath=path.abspath("time.wav")
 team1color="#88ff88"
 team2color="#aaaaff"
 team3color="#fcb900"
 team4color="#eb9694"
 team5color="#fff000"
 team6color="#bed3f3"
-
+#list exists below, remove when not needed or referenced
 
 
 #STATE VARIABLES
@@ -40,6 +35,7 @@ question=0
 buzzed_in_queue = []
 buzzlock = []
 buzzer=19
+teamcolors = ["#88ff88", "#aaaaff", "#fcb900", "#eb9694", "#fff000", "#bed3f3"]
 
 
 if virtualized==False:
@@ -53,7 +49,6 @@ while True:
     print("Welcome to Knowledge Bowl")
     print("Selct Response Time in Seconds: Ne[X]t=5, Edit [S]core=10, [Y]es=15 ")
     with keyboard.Events() as events:
-        # Block for as much as possible
         event = events.get(1e6)
         if event.key == keyboard.KeyCode.from_char('x'):
             TIMELIMIT=5
@@ -64,13 +59,11 @@ while True:
         if event.key == keyboard.KeyCode.from_char('y'):
             TIMELIMIT=15
             break
-# input number of teams
 print((TIMELIMIT)," seconds selected")
 
 print('Buzz in to select number of teams.')
 while True:
     with keyboard.Events() as events:
-        # Block for as much as possible
         event = events.get(1e6)
         if event.key == keyboard.KeyCode.from_char('a'):
             TEAMS=1
@@ -97,7 +90,6 @@ print(TEAMS, "teams selected. ")
 print("Press Yes to continue or No to edit selections.")
 while True:
     with keyboard.Events() as events:
-        # Block for as much as possible
         event = events.get(1e6)
         if event.key == keyboard.KeyCode.from_char('n'):
             break
@@ -116,7 +108,7 @@ locked = True
 #state=-3
 
 
-print("test")
+print("Starting Game")
 
 inGame=True
 buzzable=-1
@@ -138,16 +130,16 @@ def countless():
     setTimeString(TIMELIMIT)   
 
 def teamadd():
-   global TEAMS
+   global TEAMS, teamString
    TEAMS = TEAMS+1
-   return (TEAMS)
+   teamString.set(TEAMS)
 
     
 
 def teamsub():
-    global TEAMS
+    global TEAMS, teamString
     TEAMS=TEAMS-1
-    return(TEAMS)
+    teamString.set(TEAMS)
 
     		
 
@@ -163,28 +155,21 @@ def timer():
 		if (timing):
 			delta = time()-timestart
 			if delta > timeLeft:
-				#os.system("espeak time.")
 				threading.Thread(target=playsound, args=(timepath,)).start()
-				#espeak("time.")
 				buzzable=-1
 				setButtons()
 				setTimeString("00")
 				GPIO.output(buzzer,GPIO.HIGH)
 				sleep(0.5)
 				GPIO.output(buzzer,GPIO.LOW)
-				sleep(6)
+				sleep(30)
 				wrong()
-#				changeQuestion(1)
-#				reset(True)
 			elif delta%1<.1:
 				string=str(int(timeLeft+1-delta))
-				#print("before")
 				try:
 					setTimeString(string) #TODO Why does this throw an error?
 				except AttributeError:
 					print("failed")
-				#timeString.
-				#print("commented")
 		else:
 			sleep(.05)
 
@@ -232,82 +217,27 @@ def virtualPress(i):
 		buzzerString.set("Locked: Buzzer "+str(humanBuzzerNum))
 		threading.Thread(target=flashLock, args=(i,)).start()
 
-				#state=i
-		#print("state"+str(i))
-#		buzzedIn=i
 		if i not in buzzlock:
 			if i == 0 and i not in buzzlock:
-#				GPIO.output(buzzer,GPIO.HIGH)
-#				sleep(0.25)
-#				GPIO.output(buzzer,GPIO.LOW)
-				buzzed_in_queue.append(1)
-				if virtualized == True:
-					buzzlock.append(i)
-				else:
-					buzzlock.append(i)			
-				bigLabel.config(bg=team1color)
-				setButtons()            
-				print(buzzed_in_queue)
+#				buzzed_in_queue.append(1)
+				buzzlock.append(i)
 			if i == 1 and i not in buzzlock:
-#				GPIO.output(buzzer,GPIO.HIGH)
-#				sleep(0.25)
-#				GPIO.output(buzzer,GPIO.LOW)				
 				buzzed_in_queue.append(2)
-				if virtualized == True:
-					buzzlock.append(i)
-				else:
-					buzzlock.append(i)								
-				bigLabel.config(bg=team2color)
-				setButtons()              
-				print(buzzed_in_queue)
+				buzzlock.append(i)
 			if i == 2 and i not in buzzlock:
-#				GPIO.output(buzzer,GPIO.HIGH)
-#				sleep(0.25)
-#				GPIO.output(buzzer,GPIO.LOW)				
 				buzzed_in_queue.append(3)
-				if virtualized == True:
-					buzzlock.append(i)
-				else:
-					buzzlock.append(i)								
-				bigLabel.config(bg=team3color)
-				setButtons()              
-				print(buzzed_in_queue)           
+				buzzlock.append(i)
 			if i == 3 and i not in buzzlock:
-#				GPIO.output(buzzer,GPIO.HIGH)
-#				sleep(0.25)
-#				GPIO.output(buzzer,GPIO.LOW)				
 				buzzed_in_queue.append(4)
-				if virtualized == True:
-					buzzlock.append(i)
-				else:
-					buzzlock.append(i)							
-				bigLabel.config(bg=team4color)
-				setButtons()  
-				print(buzzed_in_queue)            
+				buzzlock.append(i)
 			if i == 4 and i not in buzzlock:
-#				GPIO.output(buzzer,GPIO.HIGH)
-#				sleep(0.25)
-#				GPIO.output(buzzer,GPIO.LOW)				
 				buzzed_in_queue.append(5)
-				if virtualized == True:
-					buzzlock.append(i)
-				else:
-					buzzlock.append(i)							
-				bigLabel.config(bg=team5color)
-				setButtons()  
-				print(buzzed_in_queue)		
+				buzzlock.append(i)
 			if i == 5 and i not in buzzlock:
-#				GPIO.output(buzzer,GPIO.HIGH)
-#				sleep(0.25)
-#				GPIO.output(buzzer,GPIO.LOW)				
 				buzzed_in_queue.append(6)
-				if virtualized == True:
-					buzzlock.append(i)
-				else:
-					buzzlock.append(i)								
-				bigLabel.config(bg=team6color)
-				setButtons()  
-				print(buzzed_in_queue)
+				buzzlock.append(i)
+		setButtons()
+		bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])
 		bigString.set(buzzed_in_queue)
 		threading.Thread(target=playsound, args=(i,)).start()
 		if len(buzzed_in_queue) > 0:
@@ -343,10 +273,6 @@ def playsound(i):
 		GPIO.output(buzzer,GPIO.HIGH)
 		sleep(0.1)
 		GPIO.output(buzzer,GPIO.LOW)
-	#if i==1:
-	#	system("aplay "+soundpath1)
-	#elif i==2:
-	#	system("aplay "+soundpath2)
 	else:
 		GPIO.output(buzzer,GPIO.LOW)
 
@@ -354,8 +280,6 @@ def playsound(i):
 def reset(openall):
 	global state, locked, timestart, timeLeft, TIMELIMIT, deciding, buzzedIn, buzzed_in_queue, timing, timeLeft, \
 		correctButton, wrongButton, timeString, bigString, bigLabel, top, buzzable, firstWrong
-   # global locked
-	#global timestart
 	if openall:
 		buzzable=-1
 		timeLeft = TIMELIMIT
@@ -364,23 +288,24 @@ def reset(openall):
 	bigLabel.config(bg=top.cget('bg'))
 	setTimeString(str(timeLeft))
 	timing=False
-#	buzzed_in_queue = []
 	deciding=False
 	#if state!=-3:
 	#	state=-2
 	setButtons()
 
 def open():
-	global inGame, locked, timeString, state, buzzable, buzzedIn, buzzed_in_queue, deciding
+	global inGame, locked, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding
 	#inGame=False
 
 	#If ingame, the buzzin was either a challenge or a mistake.
 	if not inGame:
-		setTimeString("00")
+		falseStart()
 	#timeString.zfill
-	#print("open")
+	buzzed_in_queue=[]
+	buzzlock =[]
 	buzzable=-1
-#	buzzedIn=-1
+	buzzedIn=-1
+	falseStart()
 	deciding=False
 	bigString.set("")
 	bigLabel.config(bg=top.cget('bg'))
@@ -424,22 +349,10 @@ def setButtons(): #AND LABELS TOO
 			correctButton.config(state=NORMAL)
 			wrongButton.config(state=NORMAL)
 
-#			if interrupted:
-#			 wrong2Button.config(state=NORMAL)
-#		elif timing==False:
-#			timerButton.config(state=NORMAL)
-
-
-
-
-
 def startCountdown():
 	global locked, timestart, state, timing, buzzable
 	timestart = time()
-	#locked = False
 	timing = True
-	#inGame=True
-	#buzzable=-1
 
 	print("Starting Count")
 	setButtons()
@@ -447,7 +360,7 @@ def startCountdown():
 def falseStart():
 	global timing, timestart, timeLeft
 	timing=False
-	timeLeft= 10
+	timeLeft= TIMELIMIT
 	timestart=time()
 	setTimeString(str(timeLeft))
 	setButtons()
@@ -477,9 +390,7 @@ def wrong_no_interrupt():
 def wrong():
 	global timeLeft, locked, timestart, state, timing, timeString, minus5, \
 		deciding, buzzedIn, buzzlock, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
-    
 
-	
 	if wrongLimit == (TEAMS)-1:		#This is the second wrong answer, so proceed to next question
 		setLabel(scores[buzzed_in_queue[0]-1][question], "0")
 		firstWrong=False
@@ -493,37 +404,14 @@ def wrong():
 		reset(True)
 	else:
 		wrongLimit = ((wrongLimit)+1)
-		
-
-#		buzzable=int(buzzedIn/6)+1
-#		buzzable=-1
-#		if buzzable == 1:
-#			buzzable=-1 #MCCALLUM - This used to be two. There are only two lock states in the game. We need more.
-#		else:
-#			buzzable=-1
-
-#		print(buzzable)
-		if interrupted:
-			scores[buzzed_in_queue[0]-1][question].config(bg="#ff7777")
-			scores[buzzed_in_queue[0]-1][question].config(textvariable=minus5)
-			reset(False)
-			if len(buzzed_in_queue) > 0:
-				buzzed_in_queue.pop(0)
-				timeLeft = TIMELIMIT
-#			print(buzzed_in_queue)                       
-			bigString.set(buzzed_in_queue)	
-            #print("Resetting...")
-		else:
-			setLabel(scores[buzzed_in_queue[0]-1][question], "0")
-			if len(buzzed_in_queue) > 0:
-				buzzed_in_queue.pop(0)			
-			timeLeft = TIMELIMIT
-			bigString.set(buzzed_in_queue)			
-			startCountdown()			
-#			print("Resuming Countdown...")
-
+		setLabel(scores[buzzed_in_queue[0]-1][question], "0")
+		if len(buzzed_in_queue) > 0:
+		    buzzed_in_queue.pop(0)			
+		timeLeft = TIMELIMIT
+		bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])			
+		bigString.set(buzzed_in_queue)			
+		startCountdown()			
 		setTimeString(timeLeft)
-#		buzzedIn=-1
 		deciding=True
 		addScores()
 		setButtons()
@@ -794,7 +682,7 @@ qplusButton.grid(row=3, column=2, padx=10)
 bigString=StringVar()
 bigString.set("12")
 bigLabel=Label(top, textvariable=bigString, bg="#cccccc", padx=10, pady=10, font=bigfont)
-bigLabel.grid(row=3, sticky='nesw', column=0, columnspan=5)
+bigLabel.grid(row=4, sticky='nesw', column=0, columnspan=5)
 #bigLabel.pack(side='bottom', fill=BOTH)
 
 
@@ -885,9 +773,11 @@ for i in range(5,6):
 dumpScoresButton=Button(leftframe, text="Dump Scores", command=dumpScores)
 dumpScoresButton.grid(row=210, column=0, pady=5, columnspan=5)
 
+teamString=StringVar()
+teamString.set(TEAMS)
 teamAdd=Button(leftframe, text="-", width=1, command=teamsub)
 teamAdd.grid(row=211, column=1, padx=10)
-teamLabel=Label(leftframe, text=TEAMS, width=2, justify="center")
+teamLabel=Label(leftframe, textvariable=teamString, width=2, justify="center")
 teamLabel.grid(row=211, column=2)
 teamSub=Button(leftframe, text="+", width=1, command=teamadd)
 teamSub.grid(row=211, column=3, padx=10)
