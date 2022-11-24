@@ -448,7 +448,7 @@ def monitorScoresThread():
 		addScores()
 
 def addScores():
-	global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label,leftFrame, rightFrame
+	global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
 	try:
 		sum=0
 		for y in range(0,1):
