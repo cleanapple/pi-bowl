@@ -10,7 +10,8 @@ from os import path, system
 
 #Constants
 virtualized=True
-pins=[4, 27, 22, 23, 24, 25, 5, 6, 12, 26]
+pins=[4, 27, 22, 23, 24, 25, 0]
+pins2=[5, 6, 12, 26]
 #A, B, C, D, E, F, Yes, No, Edit Score, Next Question
 
 
@@ -29,13 +30,17 @@ buzzlock = []
 buzzer=19
 teamcolors = ["#88ff88", "#aaaaff", "#fcb900", "#eb9694", "#fff000", "#bed3f3"]
 
+if virtualized==True:
+    h=DISABLED
 
 if virtualized==False:
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
     for i in range(0, len(pins)):
         GPIO.setup(pins[i], GPIO.IN, GPIO.PUD_UP)
-        GPIO.setup(buzzer,GPIO.OUT)
+    for h in range (0, len(pins2)):
+        GPIO.setup(pins2[h], GPIO.IN, GPIO.PUD_UP)
+    GPIO.setup(buzzer,GPIO.OUT)
 
 while True:
     print("Welcome to Knowledge Bowl")
@@ -177,7 +182,7 @@ def setTimeString(string):
 
 
 def buzzercheck():
-	global locked, pins, buzzable
+	global locked, pins, pins2, buzzable
 
 	while True:
 		if buzzable!=0:
@@ -185,9 +190,27 @@ def buzzercheck():
 			for i in range(0, len(pins)):
 				if (GPIO.input(pins[i])==False) and i not in buzzlock:
 					virtualPress(i)
+			for h in range (0, len(pins2)):
+				if (GPIO.input(pins2[h])==False):
+					hardware(h) 
 		else:
 			sleep(.1)
 
+def hardware(h):
+    global locked, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
+		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, interrupted
+    if h == 0 and len(buzzlock) > 0:
+        correct()
+    if h == 1 and len(buzzlock) > 0:
+        wrong()
+    if h == 2:
+        changeQuestion(+1)
+        buzzed_in_queue = []
+        buzzlock=[]
+    if h == 3:
+        changeQuestion(-1)
+        buzzed_in_queue = []
+        buzzlock = []
 
 def virtualPress(i):
 	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
@@ -199,9 +222,9 @@ def virtualPress(i):
 			deciding=True
 			timeLeft=int(timeString.get())
 		buzzable=-1
-		humanBuzzerNum=i+1
-		if humanBuzzerNum>7:
-			humanBuzzerNum-=7
+		humanBuzzerNum=i
+		if humanBuzzerNum>6:
+			humanBuzzerNum-=6
 		interrupted=not timing
 		timing=False
 		buzzerString.set("Locked: Buzzer "+str(humanBuzzerNum))
@@ -227,29 +250,19 @@ def virtualPress(i):
 				buzzed_in_queue.append(6)
 				buzzlock.append(i)
 		setButtons()
-		bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])
-		bigString.set(buzzed_in_queue)
+		if len(buzzed_in_queue) > 0:
+			bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])
+			bigString.set(buzzed_in_queue)
 		threading.Thread(target=playsound, args=(i,)).start()
 		if len(buzzed_in_queue) > 0:
 			startCountdown()
 
-		if i == 6:
-			correct()
-		if i == 7:
-			wrong()
-		if i == 8:
-			changeQuestion(+1)
-			buzzed_in_queue = []
-			buzzlock=[]
-		if i == 9:
-			changeQuestion(-1)
-			buzzed_in_queue = []
-			buzzlock = []            	
+        	
 
 
 def flashLock(i):
 	global locked, buttons, buzzedIn, buzzed_in_queue
-	for i in range (0,6):
+	for i in range (0,5):
 		colorb = buttons[i].cget('bg')
 		flashb = buttons[i].cget('activebackground')
 		while i in buzzlock:
@@ -303,7 +316,7 @@ def open():
 
 
 def setButtons(): #AND LABELS TOO
-	global state, buttons, correctButton, wrongButton, timerButton, openButton, timing, interrupted,\
+	global state, buttons, h, hardware, correctButton, wrongButton, timerButton, openButton, timing, interrupted,\
 		bigString, bigLabel, top, inGame, buzzlock, buzzed_in_queue, buzzable, deciding, newGameButton, timerButton
 
 	#False til proven true
@@ -313,20 +326,21 @@ def setButtons(): #AND LABELS TOO
 	wrongButton.config(state=DISABLED)
 #	wrong2Button.config(state=DISABLED)
 	openButton.config(state=NORMAL)
-	for i in range(0,6): #MCCALLUM DISABLED LAST 4 INPUTS. NEEDED FOR SCOREKEEPER BUTTONS
+	for i in range(0,5): #MCCALLUM DISABLED LAST 4 INPUTS. NEEDED FOR SCOREKEEPER BUTTONS
 		buttons[i].config(state=NORMAL)
 
 	if buzzable==-1:
 		#print(2)
-		for i in range(0,6):  #MCCALLUM disabled the last four inputs
+		for i in range(0,5):  #MCCALLUM disabled the last four inputs
 			if i in buzzlock and virtualized == True:
-				buttons[i].config(state=DISABLED)
+				buttons[i].config(state=NORMAL)
 			elif i in buzzlock and virtualized == False:
-				buttons[i].config(state=DISABLED)				
+				buttons[i].config(state=NORMAL)				
 
 	if buzzable==1:
-		for i in range(0,6):
+		for i in range(0,5):
 				buttons[i].config(state=NORMAL)
+
 
 #MCCALLUM NOT SURE WHAT TO DO HERE TO PREVENT ERRORS WITH PINS 6-9
 #	if buzzable==2: 
@@ -358,7 +372,7 @@ def falseStart():
 	setButtons()
 
 def correct():
-	global scores, buzzedIn, buzzlock, buzzed_in_queue, plus1, question, wrongLimit, firstWrong
+	global scores, buzzedIn, h, harsware, buzzlock, buzzed_in_queue, plus1, question, wrongLimit, firstWrong
 
 	scores[buzzed_in_queue[0]-1][question].config(bg="#77ff77")
 	setLabel(scores[buzzed_in_queue[0]-1][question], "+1")
@@ -380,7 +394,7 @@ def wrong_no_interrupt():
 	wrong()
 
 def wrong():
-	global timeLeft, locked, timestart, state, timing, timeString, minus0, \
+	global timeLeft, locked, timestart, state, timing, timeString, minus0, bigString, bigLabel, \
 		deciding, buzzedIn, buzzlock, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
 
 	if wrongLimit == (TEAMS)-1:		#This is the second wrong answer, so proceed to next question
@@ -415,7 +429,7 @@ def changeQuestion(amount):
 	if question >= questionnum:
 		for i in range(0,len(scores)):
 			scores[i][question-questionnum].grid_remove()
-			if i < 7:
+			if i < 6:
 				e = Entry(leftframe, text="", width=4, bd=1, bg=rightframe.cget('bg'), justify="center")
 			else:
 				e = Entry(rightframe, text="", width=4, bd=1, bg=rightframe.cget('bg'), justify="center")
@@ -448,95 +462,97 @@ def monitorScoresThread():
 		addScores()
 
 def addScores():
-	global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
-	try:
-		sum=0
-		for y in range(0,1):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
-				except ValueError:
-					sum+=0
+    global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
+	
+    for y in range (0,5):
+        try:
+            sum=0
+            if y == 0:
+                for x in range(0,len(scores[y])):
+                    try:
+                        if x != question:
+                            colorCell(scores[y][x])
+                        sum+= int(scores[y][x].get())
+                            #print(int(scores[y][x].get()))
+                    except ValueError:
+                        sum+=0
 
-		setLabel(score1Label, "Team 1: "+str(sum))
-	except IndexError:
-		print("IndexError")
-	try:
-		sum=0
-		for y in range(1,2):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
-				except ValueError:
-					sum+=0
-		setLabel(score2Label, "Team 2: "+str(sum))
-	except IndexError:
-		print("IndexError")              
-	try:
-		sum=0
-		for y in range(2,3):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
-				except ValueError:
-					sum+=0
+            setLabel(score1Label, "Team 1: "+str(sum))
+        except IndexError:
+            print("IndexError")
+        try:
+            sum=0
+            if y == 1:
+                for x in range(0,len(scores[y])):
+                    try:
+                        if x != question:
+                            colorCell(scores[y][x])
+                        sum+= int(scores[y][x].get())
+                            #print(int(scores[y][x].get()))
+                    except ValueError:
+                        sum+=0
+            setLabel(score2Label, "Team 2: "+str(sum))
+        except IndexError:
+            print("IndexError")              
+        try:
+            sum=0
+            if y == 2:
+                for x in range(0,len(scores[y])):
+                    try:
+                        if x != question:
+                            colorCell(scores[y][x])
+                        sum+= int(scores[y][x].get())
+                            #print(int(scores[y][x].get()))
+                    except ValueError:
+                        sum+=0
 
-		setLabel(score3Label, "Team 3: "+str(sum))
-	except IndexError:    
- 		print("IndexError")  
-	try:
-		sum=0
-		for y in range(3,4):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
-				except ValueError:
-					sum+=0
-		setLabel(score4Label, "Team 4: "+str(sum))
-	except IndexError:
-		print("IndexError")              
-	try:
-		sum=0
-		for y in range(4,5):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
-				except ValueError:
-					sum+=0
+            setLabel(score3Label, "Team 3: "+str(sum))
+        except IndexError:    
+            print("IndexError")  
+        try:
+            sum=0
+            if y == 3:
+                for x in range(0,len(scores[y])):
+                    try:
+                        if x != question:
+                            colorCell(scores[y][x])
+                        sum+= int(scores[y][x].get())
+                            #print(int(scores[y][x].get()))
+                    except ValueError:
+                        sum+=0
+            setLabel(score4Label, "Team 4: "+str(sum))
+        except IndexError:
+            print("IndexError")              
+        try:
+            sum=0
+            if y == 4:
+                for x in range(0,len(scores[y])):
+                    try:
+                        if x != question:
+                            colorCell(scores[y][x])
+                        sum+= int(scores[y][x].get())
+                            #print(int(scores[y][x].get()))
+                    except ValueError:
+                        sum+=0
 
-		setLabel(score5Label, "Team 5: "+str(sum))
-	except IndexError:    
- 		print("IndexError")  
-	try:
-		sum=0
-		for y in range(5,6):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
-				except ValueError:
-					sum+=0
+            setLabel(score5Label, "Team 5: "+str(sum))
+        except IndexError:    
+            print("IndexError")  
+        try:
+            sum=0
+            if y == 5:
+                for x in range(0,len(scores[y])):
+                    try:
+                        if x != question:
+                            colorCell(scores[y][x])
+                        sum+= int(scores[y][x].get())
+                            #print(int(scores[y][x].get()))
+                    except ValueError:
+                        sum+=0
+            setLabel(score6Label, "Team 6: "+str(sum))
+        except IndexError:    
+            print("IndexError")           
 
-		setLabel(score6Label, "Team 6: "+str(sum))
-	except IndexError:    
- 		print("IndexError")           
 def colorCell(cell):
 	global leftframe
 	try:
@@ -576,7 +592,7 @@ def dumpScores():
 	message=""
 	for x in range(0,len(scores[0])):
 		message+=str(x+1)+"\t"
-		for y in range(0,6):
+		for y in range(0,5):
 			message+=make3String(scores[y][x].get())
 		message=message+"      "
 		message+="\n"
