@@ -462,96 +462,96 @@ def monitorScoresThread():
 		addScores()
 
 def addScores():
-    global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
+	global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
 	
-    for y in range (0,5):
-        try:
-            sum=0
-            if y == 0:
-                for x in range(0,len(scores[y])):
-                    try:
-                        if x != question:
-                            colorCell(scores[y][x])
-                        sum+= int(scores[y][x].get())
-                            #print(int(scores[y][x].get()))
-                    except ValueError:
-                        sum+=0
+	try:
+		sum=0
+		for y in range(0,1):
+			for x in range(0,len(scores[y])):
+				try:
+					if x != question:
+						colorCell(scores[y][x])
+					sum+= int(scores[y][x].get())
+						#print(int(scores[y][x].get()))
+				except ValueError:
+					sum+=0
 
-            setLabel(score1Label, "Team 1: "+str(sum))
-        except IndexError:
-            print("IndexError")
-        try:
-            sum=0
-            if y == 1:
-                for x in range(0,len(scores[y])):
-                    try:
-                        if x != question:
-                            colorCell(scores[y][x])
-                        sum+= int(scores[y][x].get())
-                            #print(int(scores[y][x].get()))
-                    except ValueError:
-                        sum+=0
-            setLabel(score2Label, "Team 2: "+str(sum))
-        except IndexError:
-            print("IndexError")              
-        try:
-            sum=0
-            if y == 2:
-                for x in range(0,len(scores[y])):
-                    try:
-                        if x != question:
-                            colorCell(scores[y][x])
-                        sum+= int(scores[y][x].get())
-                            #print(int(scores[y][x].get()))
-                    except ValueError:
-                        sum+=0
+		setLabel(score1Label, "Team 1: "+str(sum))
+	except IndexError:
+		print("IndexError")
+	try:
+		sum=0
+		for y in range(1,2):
+			for x in range(0,len(scores[y])):
+				try:
+					if x != question:
+						colorCell(scores[y][x])
+					sum+= int(scores[y][x].get())
+						#print(int(scores[y][x].get()))
+				except ValueError:
+					sum+=0
+		setLabel(score2Label, "Team 2: "+str(sum))
+	except IndexError:
+		print("IndexError")              
+	try:
+		sum=0
+		for y in range(2,3):
+			for x in range(0,len(scores[y])):
+				try:
+					if x != question:
+						colorCell(scores[y][x])
+					sum+= int(scores[y][x].get())
+						#print(int(scores[y][x].get()))
+				except ValueError:
+					sum+=0
 
-            setLabel(score3Label, "Team 3: "+str(sum))
-        except IndexError:    
-            print("IndexError")  
-        try:
-            sum=0
-            if y == 3:
-                for x in range(0,len(scores[y])):
-                    try:
-                        if x != question:
-                            colorCell(scores[y][x])
-                        sum+= int(scores[y][x].get())
-                            #print(int(scores[y][x].get()))
-                    except ValueError:
-                        sum+=0
-            setLabel(score4Label, "Team 4: "+str(sum))
-        except IndexError:
-            print("IndexError")              
-        try:
-            sum=0
-            if y == 4:
-                for x in range(0,len(scores[y])):
-                    try:
-                        if x != question:
-                            colorCell(scores[y][x])
-                        sum+= int(scores[y][x].get())
-                            #print(int(scores[y][x].get()))
-                    except ValueError:
-                        sum+=0
+		setLabel(score3Label, "Team 3: "+str(sum))
+	except IndexError:    
+ 		print("IndexError")  
+	try:
+		sum=0
+		for y in range(3,4):
+			for x in range(0,len(scores[y])):
+				try:
+					if x != question:
+						colorCell(scores[y][x])
+					sum+= int(scores[y][x].get())
+						#print(int(scores[y][x].get()))
+				except ValueError:
+					sum+=0
+		setLabel(score4Label, "Team 4: "+str(sum))
+	except IndexError:
+		print("IndexError")              
+	try:
+		sum=0
+		for y in range(4,5):
+			for x in range(0,len(scores[y])):
+				try:
+					if x != question:
+						colorCell(scores[y][x])
+					sum+= int(scores[y][x].get())
+						#print(int(scores[y][x].get()))
+				except ValueError:
+					sum+=0
 
-            setLabel(score5Label, "Team 5: "+str(sum))
-        except IndexError:    
-            print("IndexError")  
-        try:
-            sum=0
-            if y == 5:
-                for x in range(0,len(scores[y])):
-                    try:
-                        if x != question:
-                            colorCell(scores[y][x])
-                        sum+= int(scores[y][x].get())
-                            #print(int(scores[y][x].get()))
-                    except ValueError:
-                        sum+=0
-            setLabel(score6Label, "Team 6: "+str(sum))
-        except IndexError:    
-            print("IndexError")           
+		setLabel(score5Label, "Team 5: "+str(sum))
+	except IndexError:    
+ 		print("IndexError")  
+	try:
+		sum=0
+		for y in range(5,6):
+			for x in range(0,len(scores[y])):
+				try:
+					if x != question:
+						colorCell(scores[y][x])
+					sum+= int(scores[y][x].get())
+						#print(int(scores[y][x].get()))
+				except ValueError:
+					sum+=0
+
+		setLabel(score6Label, "Team 6: "+str(sum))
+	except IndexError:    
+ 		print("IndexError")   
 
 def colorCell(cell):
 	global leftframe
