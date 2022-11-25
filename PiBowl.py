@@ -394,7 +394,7 @@ def wrong_no_interrupt():
 	wrong()
 
 def wrong():
-	global timeLeft, locked, timestart, state, timing, timeString, minus0, bigString, bigLabel, \
+	global timeLeft, locked, h, timestart, state, timing, timeString, minus0, bigString, bigLabel, \
 		deciding, buzzedIn, buzzlock, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
 
 	if wrongLimit == (TEAMS)-1:		#This is the second wrong answer, so proceed to next question
@@ -411,11 +411,14 @@ def wrong():
 	else:
 		wrongLimit = ((wrongLimit)+1)
 		setLabel(scores[buzzed_in_queue[0]-1][question], "0")
-		if len(buzzed_in_queue) > 0:
-		    buzzed_in_queue.pop(0)			
+		if len (buzzed_in_queue) == 1:
+			buzzed_in_queue.pop(0)			
+			bigLabel.config(bg="#ffffff"), bigString.set("Reread")
+		else: 
+			buzzed_in_queue.pop(0)
+			bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1]), bigString.set(buzzed_in_queue)
+
 		timeLeft = TIMELIMIT
-		bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])			
-		bigString.set(buzzed_in_queue)			
 		startCountdown()			
 		setTimeString(timeLeft)
 		deciding=True
