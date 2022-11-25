@@ -10,9 +10,8 @@ from os import path, system
 
 #Constants
 virtualized=True
-pins=[4, 27, 22, 23, 24, 25, 0]
-pins2=[5, 6, 12, 26]
-#A, B, C, D, E, F, Yes, No, Edit Score, Next Question
+pins=[4, 27, 22, 23, 24, 25, 0] #Teams
+pins2=[5, 6, 12, 26] #Hardware buttons fot Yes, No, Edit Score, Open/Reset
 
 
 #STATE VARIABLES
@@ -96,14 +95,6 @@ while True:
 
 
 locked = True
-#timestart = 0
-
-#State is used to represent where the buzzer state is. -3 means no game is in progress, nor the buzzers open.
-#-2 means closed to all,
-#-1 means open for a buzz-in,
-#and 0-9 means closed to all as a result of buzzer[i] pressed.
-#state=-3
-
 
 print("Starting Game")
 
@@ -131,14 +122,10 @@ def teamadd():
    TEAMS = TEAMS+1
    teamString.set(TEAMS)
 
-    
-
 def teamsub():
     global TEAMS, teamString
     TEAMS=TEAMS-1
     teamString.set(TEAMS)
-
-    		
 
 def espeak(string):
 	threading.Thread(target=system, args=("espeak "+string, )).start()
@@ -173,7 +160,6 @@ def setTimeString(string):
 
 	try:
 		timeString.set(string) #TODO Why does this throw an error?
-		#print "successfully set to: "+str(string))
 	except AttributeError:
 		print("failed to set to: "+string)
 		timeString=StringVar(timeLabel)
@@ -204,13 +190,14 @@ def hardware(h):
     if h == 1 and len(buzzlock) > 0:
         wrong()
     if h == 2:
-        changeQuestion(+1)
         buzzed_in_queue = []
         buzzlock=[]
-    if h == 3:
         changeQuestion(-1)
+    if h == 3:
         buzzed_in_queue = []
         buzzlock = []
+        open()
+
 
 def virtualPress(i):
 	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
@@ -257,9 +244,6 @@ def virtualPress(i):
 		if len(buzzed_in_queue) > 0:
 			startCountdown()
 
-        	
-
-
 def flashLock(i):
 	global locked, buttons, buzzedIn, buzzed_in_queue
 	for i in range (0,5):
@@ -293,12 +277,10 @@ def reset(openall):
 	setTimeString(str(timeLeft))
 	timing=False
 	deciding=False
-	#if state!=-3:
-	#	state=-2
 	setButtons()
 
 def open():
-	global inGame, locked, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding
+	global inGame, locked, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_iwrongn_queue, deciding
 	#inGame=False
 
 	#If ingame, the buzzin was either a challenge or a mistake.
@@ -314,7 +296,6 @@ def open():
 	bigLabel.config(bg=top.cget('bg'))
 	setButtons()
 
-
 def setButtons(): #AND LABELS TOO
 	global state, buttons, h, hardware, correctButton, wrongButton, timerButton, openButton, timing, interrupted,\
 		bigString, bigLabel, top, inGame, buzzlock, buzzed_in_queue, buzzable, deciding, newGameButton, timerButton
@@ -326,12 +307,11 @@ def setButtons(): #AND LABELS TOO
 	wrongButton.config(state=DISABLED)
 #	wrong2Button.config(state=DISABLED)
 	openButton.config(state=NORMAL)
-	for i in range(0,5): #MCCALLUM DISABLED LAST 4 INPUTS. NEEDED FOR SCOREKEEPER BUTTONS
+	for i in range(0,5): 
 		buttons[i].config(state=NORMAL)
 
 	if buzzable==-1:
-		#print(2)
-		for i in range(0,5):  #MCCALLUM disabled the last four inputs
+		for i in range(0,5):  
 			if i in buzzlock and virtualized == True:
 				buttons[i].config(state=NORMAL)
 			elif i in buzzlock and virtualized == False:
@@ -340,12 +320,6 @@ def setButtons(): #AND LABELS TOO
 	if buzzable==1:
 		for i in range(0,5):
 				buttons[i].config(state=NORMAL)
-
-
-#MCCALLUM NOT SURE WHAT TO DO HERE TO PREVENT ERRORS WITH PINS 6-9
-#	if buzzable==2: 
-#		for i in range(6,10):
-#				buttons[i].config(state=NORMAL)
 
 	if inGame==False:
 		newGameButton.config(state=NORMAL)
@@ -397,7 +371,7 @@ def wrong():
 	global timeLeft, locked, h, timestart, state, timing, timeString, minus0, bigString, bigLabel, \
 		deciding, buzzedIn, buzzlock, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
 
-	if wrongLimit == (TEAMS)-1:		#This is the second wrong answer, so proceed to next question
+	if wrongLimit == (TEAMS)-1:		#All teams gave a wrong answer, so proceed to next question
 		setLabel(scores[buzzed_in_queue[0]-1][question], "0")
 		firstWrong=False
 		print("Next question")
@@ -450,14 +424,10 @@ def newGame():
 	inGame=True
 	reset(True)
 
-
-
-
 def setLabel(label, text):
 	string = StringVar()
 	string.set(text)
 	label.config(textvariable=string)
-
 
 def monitorScoresThread():
 	while True:
@@ -475,7 +445,6 @@ def addScores():
 					if x != question:
 						colorCell(scores[y][x])
 					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
 				except ValueError:
 					sum+=0
 
@@ -490,7 +459,6 @@ def addScores():
 					if x != question:
 						colorCell(scores[y][x])
 					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
 				except ValueError:
 					sum+=0
 		setLabel(score2Label, "Team 2: "+str(sum))
@@ -504,7 +472,6 @@ def addScores():
 					if x != question:
 						colorCell(scores[y][x])
 					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
 				except ValueError:
 					sum+=0
 
@@ -519,7 +486,6 @@ def addScores():
 					if x != question:
 						colorCell(scores[y][x])
 					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
 				except ValueError:
 					sum+=0
 		setLabel(score4Label, "Team 4: "+str(sum))
@@ -533,7 +499,6 @@ def addScores():
 					if x != question:
 						colorCell(scores[y][x])
 					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
 				except ValueError:
 					sum+=0
 
@@ -548,10 +513,8 @@ def addScores():
 					if x != question:
 						colorCell(scores[y][x])
 					sum+= int(scores[y][x].get())
-						#print(int(scores[y][x].get()))
 				except ValueError:
 					sum+=0
-
 		setLabel(score6Label, "Team 6: "+str(sum))
 	except IndexError:    
  		print("IndexError")   
@@ -644,7 +607,6 @@ buzzerString=StringVar()
 buzzerString.set("Buzzers Closed")
 buzzerLabel=Label(top, textvariable=buzzerString, justify="center")
 #buzzerLabel.grid(row=2, column=2)
-#buzzerLabel.pack()
 
 newGameButton = Button(top, text="START", command=newGame, bg="#00ffff", width=15)
 newGameButton.grid(row=1, column=5)
@@ -666,7 +628,6 @@ wrongButton.grid(row=0, column=1, padx=0)
 
 openButton = Button(wrongFrame, text="Open buzzers", command=open, bg="#00ffff", width=10)
 openButton.grid(row=2, column=1)
-#openButton.pack()
 
 
 #Label dispaying question # and associated buttons
@@ -709,7 +670,6 @@ for i in range(0,6):
 		e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
 		scores[i].append(e)
 		e.grid(row=j, column=i, pady=0, padx=0)
-		#print("created",i,j)
 
 
 dumpScoresButton=Button(leftframe, text="Dump Scores", command=dumpScores)
@@ -740,8 +700,6 @@ score6Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolo
 score6Label.grid(row=6, column=6, columnspan=5, pady=5)
 
 
-
-#scoreFrame
 
 #not used rightside options
 #t = IntVar()
