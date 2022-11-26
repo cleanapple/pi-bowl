@@ -7,6 +7,7 @@ import threading
 from pynput import keyboard
 from os import path, system
 
+#To play The SuperQuiz variant, uncomment the sqLabel in the TK section near the bottom.
 
 #Constants
 virtualized=True
@@ -28,6 +29,8 @@ buzzed_in_queue = []
 buzzlock = []
 buzzer=19
 teamcolors = ["#88ff88", "#aaaaff", "#fcb900", "#eb9694", "#fff000", "#bed3f3"]
+sq = 1
+sqscore=("+1")
 
 if virtualized==True:
     h=DISABLED
@@ -127,8 +130,35 @@ def teamsub():
     TEAMS=TEAMS-1
     teamString.set(TEAMS)
 
-def espeak(string):
-	threading.Thread(target=system, args=("espeak "+string, )).start()
+def superQuiz():
+    global scores, plus, sqLevel, sq, sqString, sqscore
+    if sq==1:
+        plus.set("+1")
+        sqscore=("+1")
+        sqString.set("Freshman")	
+    if sq==2:
+        plus.set("+2")
+        sqscore=("+2")
+        sqString.set("Graduate")		
+    if sq== 3:
+        plus.set("+3")
+        sqscore=("+3")
+        sqString.set("Ph.D")
+
+def sqdown():
+    global sq, sqLevel, sqString, plus
+    sq = sq-1
+    if sq < 1:
+        sq +=1
+    superQuiz()
+
+
+def squp():
+    global sq, sqLevel, sqString
+    sq=sq+1
+    if sq > 3:
+        sq -= 3
+    superQuiz()
 
 def timer():
 	global timestart, timeString, TIMELIMIT, timeLeft, locked, \
@@ -359,10 +389,10 @@ def falseStart():
 	setButtons()
 
 def correct():
-	global scores, buzzedIn, h, harsware, buzzlock, buzzed_in_queue, plus1, question, wrongLimit, firstWrong
+	global scores, plus, buzzedIn, h, harsware, sqscore, buzzlock, buzzed_in_queue, question, wrongLimit, firstWrong
 
 	scores[buzzed_in_queue[0]-1][question].config(bg="#77ff77")
-	setLabel(scores[buzzed_in_queue[0]-1][question], "+1")
+	setLabel(scores[buzzed_in_queue[0]-1][question], sqscore)
 	wrongLimit=0
 	buzzlock = []
 	buzzed_in_queue = []
@@ -700,6 +730,15 @@ teamLabel.grid(row=211, column=2)
 teamSub=Button(leftframe, text="+", width=1, command=teamadd)
 teamSub.grid(row=211, column=3, padx=10)
 
+sqString=StringVar()
+sqString.set("Freshman")
+#teamAdd=Button(leftframe, text="-", width=1, command=sqdown)
+#teamAdd.grid(row=212, column=1, padx=10)
+#teamLabel=Label(leftframe, textvariable=sqString, width=7, justify="center")
+#teamLabel.grid(row=212, column=2)
+#teamSub=Button(leftframe, text="+", width=1, command=squp)
+#teamSub.grid(row=212, column=3, padx=10)
+
 rightframe=Frame(top)
 rightframe.grid(row=0, column=7, rowspan=6, columnspan=100)
 score1Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[0], bg="#222222")
@@ -734,8 +773,8 @@ score6Label.grid(row=6, column=6, columnspan=5, pady=5)
 minus0=StringVar()
 minus0.set("0")
 
-plus1=StringVar()
-plus1.set("+1")
+plus=StringVar()
+plus.set("+1")
 
 reset(True)
 buzzable=-1
