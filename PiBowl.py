@@ -138,14 +138,14 @@ def timer():
 		if (timing):
 			delta = time()-timestart
 			if delta > timeLeft:
-				buzzable=-1
-				setButtons()
+#				buzzable=-1
+#				setButtons()
 				setTimeString("00")
-				GPIO.output(buzzer,GPIO.HIGH)
-				sleep(0.5)
-				GPIO.output(buzzer,GPIO.LOW)
-				sleep(30)
-				wrong()
+				threading.Thread(target=timeout).start()
+				sleep (1)
+				setTimeString(TIMELIMIT)
+				timing=False
+
 			elif delta%1<.1:
 				string=str(int(timeLeft+1-delta))
 				try:
@@ -221,21 +221,29 @@ def virtualPress(i):
 			if i == 0 and i not in buzzlock:
 				buzzed_in_queue.append(1)
 				buzzlock.append(i)
+				startCountdown
 			if i == 1 and i not in buzzlock:
 				buzzed_in_queue.append(2)
 				buzzlock.append(i)
+				startCountdown
+
 			if i == 2 and i not in buzzlock:
 				buzzed_in_queue.append(3)
 				buzzlock.append(i)
+				startCountdown
+               
 			if i == 3 and i not in buzzlock:
 				buzzed_in_queue.append(4)
 				buzzlock.append(i)
+				startCountdown                
 			if i == 4 and i not in buzzlock:
 				buzzed_in_queue.append(5)
 				buzzlock.append(i)
+				startCountdown                
 			if i == 5 and i not in buzzlock:
 				buzzed_in_queue.append(6)
 				buzzlock.append(i)
+				startCountdown                
 		setButtons()
 		if len(buzzed_in_queue) > 0:
 			bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])
@@ -264,6 +272,11 @@ def playsound(i):
 	else:
 		GPIO.output(buzzer,GPIO.LOW)
 
+def timeout():
+    GPIO.output(buzzer,GPIO.HIGH)
+    sleep(0.5)
+    GPIO.output(buzzer,GPIO.LOW)
+
 #reset for the next question
 def reset(openall):
 	global state, locked, timestart, timeLeft, TIMELIMIT, deciding, buzzedIn, buzzed_in_queue, timing, timeLeft, \
@@ -280,7 +293,7 @@ def reset(openall):
 	setButtons()
 
 def open():
-	global inGame, locked, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_iwrongn_queue, deciding
+	global inGame, locked, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding
 	#inGame=False
 
 	#If ingame, the buzzin was either a challenge or a mistake.
@@ -369,7 +382,7 @@ def wrong_no_interrupt():
 
 def wrong():
 	global timeLeft, locked, h, timestart, state, timing, timeString, minus0, bigString, bigLabel, \
-		deciding, buzzedIn, buzzlock, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
+		deciding, buzzedIn, buzzlock, addScores, changeQuestion, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
 
 	if wrongLimit == (TEAMS)-1:		#All teams gave a wrong answer, so proceed to next question
 		setLabel(scores[buzzed_in_queue[0]-1][question], "0")
@@ -380,6 +393,7 @@ def wrong():
 		wrongLimit=0
 		buzzed_in_queue = []
 		buzzlock = []
+		timing=False
 		timeLeft = TIMELIMIT
 		reset(True)
 	else:
@@ -388,16 +402,18 @@ def wrong():
 		if len (buzzed_in_queue) == 1:
 			buzzed_in_queue.pop(0)			
 			bigLabel.config(bg="#ffffff"), bigString.set("Reread")
+			timeLeft = TIMELIMIT
+			timing=False			
+			setTimeString(timeLeft)
 		else: 
 			buzzed_in_queue.pop(0)
 			bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1]), bigString.set(buzzed_in_queue)
-
-		timeLeft = TIMELIMIT
-		startCountdown()			
-		setTimeString(timeLeft)
-		deciding=True
-		addScores()
-		setButtons()
+			timeLeft = TIMELIMIT
+			startCountdown()			
+			setTimeString(timeLeft)
+			deciding=True
+			addScores()
+			setButtons()
 
 def changeQuestion(amount):
 	global question, scores, questionLabel, questionnum
