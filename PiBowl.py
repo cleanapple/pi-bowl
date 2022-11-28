@@ -28,7 +28,9 @@ question=0
 buzzed_in_queue = []
 buzzlock = []
 buzzer=19
-teamcolors = ["#88ff88", "#aaaaff", "#fcb900", "#eb9694", "#fff000", "#bed3f3"]
+teamcolors = ["#37d67a", "#fcb900", "#9979d2", "#ffff00", "#79abd2", "#f78da7"]
+TEAMS=3
+TIMELIMIT=15
 sq = 1
 sqscore=("+1")
 
@@ -44,56 +46,55 @@ if virtualized==False:
         GPIO.setup(pins2[h], GPIO.IN, GPIO.PUD_UP)
     GPIO.setup(buzzer,GPIO.OUT)
 
-while True:
-    print("Welcome to Knowledge Bowl")
-    print("Selct Response Time in Seconds: Ne[X]t=5, Edit [S]core=10, [Y]es=15 ")
-    with keyboard.Events() as events:
-        event = events.get(1e6)
-        if event.key == keyboard.KeyCode.from_char('x'):
-            TIMELIMIT=5
-            break
-        if event.key == keyboard.KeyCode.from_char('s'):
-            TIMELIMIT=10
-            break
-        if event.key == keyboard.KeyCode.from_char('y'):
-            TIMELIMIT=15
-            break
-print((TIMELIMIT)," seconds selected")
+#while True:
+#    print("Welcome to Knowledge Bowl")
+#    print("Selct Response Time in Seconds: Ne[X]t=5, Edit [S]core=10, [Y]es=15 ")
+#    with keyboard.Events() as events:
+#        event = events.get(1e6)
+#        if event.key == keyboard.KeyCode.from_char('x'):
+#            TIMELIMIT=5
+#            break
+#        if event.key == keyboard.KeyCode.from_char('s'):
+#            TIMELIMIT=10
+#            break
+#        if event.key == keyboard.KeyCode.from_char('y'):
+#            TIMELIMIT=15
+#            break
+#print((TIMELIMIT)," seconds selected")
 
-print('Buzz in to select number of teams.')
-while True:
-    with keyboard.Events() as events:
-        event = events.get(1e6)
-        if event.key == keyboard.KeyCode.from_char('a'):
-            TEAMS=1
-            break
-        if event.key == keyboard.KeyCode.from_char('b'):
-            TEAMS=2
-            break
-        if event.key == keyboard.KeyCode.from_char('c'):
-            TEAMS=3
-            break
-        if event.key == keyboard.KeyCode.from_char('d'):
-            TEAMS=4
-            break
-        if event.key == keyboard.KeyCode.from_char('e'):
-            TEAMS=5
-            break
-        if event.key == keyboard.KeyCode.from_char('f'):
-            TEAMS=6
-            break   
+#print('Buzz in to select number of teams.')
+#while True:
+#    with keyboard.Events() as events:
+#        event = events.get(1e6)
+#        if event.key == keyboard.KeyCode.from_char('a'):
+#            TEAMS=1
+#            break
+#        if event.key == keyboard.KeyCode.from_char('b'):
+#            TEAMS=2
+#            break
+#        if event.key == keyboard.KeyCode.from_char('c'):
+#            TEAMS=3
+#            break
+#        if event.key == keyboard.KeyCode.from_char('d'):
+#           break
+#        if event.key == keyboard.KeyCode.from_char('e'):
+#            TEAMS=5
+#            break
+#        if event.key == keyboard.KeyCode.from_char('f'):
+#            TEAMS=6
+#            break   
 
-print(TEAMS, "teams selected. ")
+#print(TEAMS, "teams selected. ")
 
 
-print("Press Yes to continue or No to edit selections.")
-while True:
-    with keyboard.Events() as events:
-        event = events.get(1e6)
-        if event.key == keyboard.KeyCode.from_char('n'):
-            break
-        if event.key == keyboard.KeyCode.from_char('y'):
-            break
+#print("Press Yes to continue or No to edit selections.")
+#while True:
+#    with keyboard.Events() as events:
+#        event = events.get(1e6)
+#        if event.key == keyboard.KeyCode.from_char('n'):
+#            break
+#        if event.key == keyboard.KeyCode.from_char('y'):
+#            break
 
 
 
@@ -213,7 +214,7 @@ def buzzercheck():
 			sleep(.1)
 
 def hardware(h):
-    global locked, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
+    global locked, buttons, timeLeft, timeLabel, TEAMS, buzzedIn, buzzed_in_queue, deciding, \
 		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, interrupted
     if h == 0 and len(buzzlock) > 0:
         correct()
@@ -230,18 +231,18 @@ def hardware(h):
 
 
 def virtualPress(i):
-	global locked, soundLocation, buttons, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
+	global locked, soundLocation, buttons, h, TEAMS, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
 		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, interrupted
 	print("buzzable=",buzzable)
-	if buzzable==-1 or buzzable==int(i/6)+1:
+	if buzzable==-1 or buzzable==int(i/9)+1:
 		if inGame:
 			buzzable=-1
 			deciding=True
 			timeLeft=int(timeString.get())
 		buzzable=-1
 		humanBuzzerNum=i
-		if humanBuzzerNum>6:
-			humanBuzzerNum-=6
+		if humanBuzzerNum>9:
+			humanBuzzerNum-=9
 		interrupted=not timing
 		timing=False
 		buzzerString.set("Locked: Buzzer "+str(humanBuzzerNum))
@@ -389,7 +390,7 @@ def falseStart():
 	setButtons()
 
 def correct():
-	global scores, plus, buzzedIn, h, harsware, sqscore, buzzlock, buzzed_in_queue, question, wrongLimit, firstWrong
+	global scores, plus, buzzedIn, h, hardware, sqscore, buzzlock, buzzed_in_queue, question, wrongLimit, firstWrong
 
 	scores[buzzed_in_queue[0]-1][question].config(bg="#77ff77")
 	setLabel(scores[buzzed_in_queue[0]-1][question], sqscore)
@@ -411,7 +412,7 @@ def wrong_no_interrupt():
 	wrong()
 
 def wrong():
-	global timeLeft, locked, h, timestart, state, timing, timeString, minus0, bigString, bigLabel, \
+	global timeLeft, locked, h, TEAMS, pins2, timestart, state, hardware, timing, timeString, minus0, bigString, bigLabel, \
 		deciding, buzzedIn, buzzlock, addScores, changeQuestion, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
 
 	if wrongLimit == (TEAMS)-1:		#All teams gave a wrong answer, so proceed to next question
@@ -435,6 +436,9 @@ def wrong():
 			timeLeft = TIMELIMIT
 			timing=False			
 			setTimeString(timeLeft)
+			deciding=True
+			addScores()
+			setButtons()           
 		else: 
 			buzzed_in_queue.pop(0)
 			bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1]), bigString.set(buzzed_in_queue)
@@ -620,6 +624,10 @@ def make3String(string):
 		return "0  "
 	if string =="0":
 		return "0 "
+	if string =="+2":
+		return "2 "	
+	if string =="+3":
+		return "3 "		
 	else:
 		return "__ "
 
@@ -661,7 +669,7 @@ newGameButton.grid(row=1, column=5)
 #timerButton = Button(top, text="Start Countdown", command=startCountdown, state=DISABLED)
 #timerButton.grid(row=2, column=5)
 
-correctButton = Button(top, text="Right!", command=correct, background="#99ca9f", font=bigfont)
+correctButton = Button(top, text="Right!", command=correct, background="#47e749", font=bigfont)
 correctButton.grid(row=2, column=5)
 
 wrongFrame = Frame(top)
@@ -732,12 +740,12 @@ teamSub.grid(row=211, column=3, padx=10)
 
 sqString=StringVar()
 sqString.set("Freshman")
-#teamAdd=Button(leftframe, text="-", width=1, command=sqdown)
-#teamAdd.grid(row=212, column=1, padx=10)
-#teamLabel=Label(leftframe, textvariable=sqString, width=7, justify="center")
-#teamLabel.grid(row=212, column=2)
-#teamSub=Button(leftframe, text="+", width=1, command=squp)
-#teamSub.grid(row=212, column=3, padx=10)
+teamAdd=Button(leftframe, text="-", width=1, command=sqdown)
+teamAdd.grid(row=212, column=1, padx=10)
+teamLabel=Label(leftframe, textvariable=sqString, width=7, justify="center")
+teamLabel.grid(row=212, column=2)
+teamSub=Button(leftframe, text="+", width=1, command=squp)
+teamSub.grid(row=212, column=3, padx=10)
 
 rightframe=Frame(top)
 rightframe.grid(row=0, column=7, rowspan=6, columnspan=100)
