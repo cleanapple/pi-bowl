@@ -324,7 +324,7 @@ def reset(openall):
 	setButtons()
 
 def open():
-	global inGame, locked, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding
+	global inGame, wrongLimit, locked, timing, h, hardware, falseStart, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding
 	#inGame=False
 
 	#If ingame, the buzzin was either a challenge or a mistake.
@@ -332,9 +332,11 @@ def open():
 		falseStart()
 	buzzed_in_queue=[]
 	buzzlock =[]
+	wrongLimit = 0
 	buzzable=-1
 	buzzedIn=-1
 	falseStart()
+	timing=False
 	deciding=False
 	bigString.set("")
 	bigLabel.config(bg=top.cget('bg'))
