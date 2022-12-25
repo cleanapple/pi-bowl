@@ -1,7 +1,7 @@
 pi-bowl
 =======
 
-![Pibowl screenshot](pi-bowl-screenshot.png)
+![Pibowl screenshot](kb.png)
 
 A Python (Tkinter, RPi.GPIO) program for running a scholars bowl buzzer hub from a Raspberry Pi, managing timing, scoring, buzzer lockout, and player recognition.
 
