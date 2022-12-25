@@ -231,7 +231,6 @@ def reset(openall): #reset for the next question
 	if openall:
 		buzzable=-1
 		timeLeft = TIMELIMIT
-	buzzerString.set("Ready to Start Countdown!")
 	bigString.set("")
 	bigLabel.config(bg=top.cget('bg'))
 	setTimeString(str(timeLeft))
@@ -258,9 +257,8 @@ def open(): #reset buzzers
 
 def setButtons(): #AND LABELS TOO
 	global state, buttons, h, hardware, correctButton, wrongButton, timerButton, openButton, timing, interrupted,\
-		bigString, bigLabel, top, inGame, buzzlock, buzzed_in_queue, buzzable, deciding, newGameButton, timerButton
+		bigString, bigLabel, top, inGame, buzzlock, buzzed_in_queue, buzzable, deciding, timerButton
 
-	newGameButton.config(state=DISABLED)
 	correctButton.config(state=DISABLED)
 	wrongButton.config(state=DISABLED)
 	openButton.config(state=NORMAL)
@@ -279,7 +277,6 @@ def setButtons(): #AND LABELS TOO
 				buttons[i].config(state=NORMAL)
 
 	if inGame==False:
-		newGameButton.config(state=NORMAL)
 		openButton.config(state=NORMAL)
 	else:
 		if deciding:
@@ -313,12 +310,12 @@ def correct():
 	firstWrong=False
 	reset(True)
 
-def wrong_no_interrupt():
-	global interrupted, bigLabel, bigString, firstWrong
-	interrupted=False
-	bigString.set("")
-	bigLabel.config(bg=top.cget('bg'))
-	wrong()
+#def wrong_no_interrupt():
+#	global interrupted, bigLabel, bigString, firstWrong
+#	interrupted=False
+#	bigString.set("")
+#	bigLabel.config(bg=top.cget('bg'))
+#	wrong()
 
 def wrong():
 	global timeLeft, locked, h, TEAMS, pins2, timestart, state, hardware, timing, timeString, minus0, bigString, bigLabel, \
@@ -376,17 +373,31 @@ def changeQuestion(amount):
 		scores[i][question].config(bg="#eeeeee")
 
 def newGame(): #reset everything and prepare for a new game
-	global locked, inGame, state, question, TEAMS, scores, buttons, TIMELIMIT, sq, buzzlock, buzzed_in_queue, sqscore
+	global locked, inGame, state, question, TEAMS, scores, buttons, TIMELIMIT, sq, buzzlock, buzzed_in_queue, sqscore, scores, buttons, questionnum, leftframe
 	print(newGame)
+# Destroy all widgets in the leftframe
+	for widget in leftframe.winfo_children():
+		widget.destroy()
+# Reset the scores and buttons lists
+	scores = []
+	buttons = []
+  # Create new widgets with the same layout as the original ones
+	for i in range(0,6):
+		buttons.append(Button(leftframe, text=str(i+1), bg=teamcolors[i],
+			command=lambda i=i: virtualPress(i)))
+		buttons[i].grid(row=200, column=i)
+		scores.append([])
+		for j in range(0,questionnum):
+			string=StringVar()
+			#string.set(str(i)+str(j))
+			e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
+			scores[i].append(e)
+			e.grid(row=j, column=i, pady=0, padx=0)
 	question=0
 	changeQuestion(0)
 	TIMELIMIT=15
 	TEAMS=3
 	inGame=True
-	for i in range(len(scores)):
-		for j in range(len(scores[i])):
-			scores[i][j].delete(0, 'end')
-			scores[i][j].insert(0, '') 
 	sq==1
 	plus.set("+1")
 	sqscore=("+1")
@@ -488,13 +499,12 @@ falseStartButton=Button(timeFrame, text="New Game", width=8, command=newGame)
 falseStartButton.grid(row=1, column=2)
 
 buzzerString=StringVar()
-buzzerString.set("Buzzers Closed")
-buzzerLabel=Label(top, textvariable=buzzerString, justify="center")
+#buzzerString.set("Buzzers Closed")
+#buzzerLabel=Label(top, textvariable=buzzerString, justify="center")
 
-newGameButton = Button(top, text="START", command=newGame, bg="#00ffff", width=15)
-newGameButton.grid(row=1, column=5)
-
-correctButton = Button(top, text="Right!", command=correct, background="#47e749", font=bigfont)
+correctFrame = Frame(top)
+correctFrame.grid(row=2, column=5)
+correctButton = Button(top, text="Right!", justify="center", command=correct, background="#47e749", font=bigfont)
 correctButton.grid(row=2, column=5)
 
 wrongFrame = Frame(top)
@@ -502,20 +512,22 @@ wrongFrame.grid(row=3, column=5)
 wrongButton = Button(wrongFrame, text="Wrong", justify="center", command=wrong, bg="#ff6666", font=bigfont)
 wrongButton.grid(row=0, column=1, padx=0)
 
-openButton = Button(wrongFrame, text="Open buzzers", command=open, bg="#00ffff", width=10)
-openButton.grid(row=2, column=1)
+openFrame = Frame(top)
+openFrame.grid(row=4, column=5)
+openButton = Button(openFrame, text="Open buzzers", justify="center", command=open, bg="#00ffff", width=10)
+openButton.grid(row=0, column=0)
 
 #Label dispaying question # and associated buttons
 questionFrame= Frame(top)
-questionFrame.grid(row=7, column=5)
+questionFrame.grid(row=5, column=5)
 Label(questionFrame, text="", justify="center").grid(row=0, column=0)
-qminusButton=Button(wrongFrame, text="-", width=1, command=lambda i=-1: changeQuestion(i))
-qminusButton.grid(row=3, column=0, padx=10)
+qminusButton=Button(questionFrame, text="-", width=1, command=lambda i=-1: changeQuestion(i))
+qminusButton.grid(row=0, column=0, padx=10)
 questionString=StringVar()
-questionLabel=Label(wrongFrame, font=bigfont, textvariable=questionString, justify="center")
-questionLabel.grid(row=3, column=1)
-qplusButton=Button(wrongFrame, text="+", width=1, command=lambda i=1: changeQuestion(i))
-qplusButton.grid(row=3, column=2, padx=10)
+questionLabel=Label(questionFrame, font=bigfont, textvariable=questionString, justify="center")
+questionLabel.grid(row=0, column=1)
+qplusButton=Button(questionFrame, text="+", width=1, command=lambda i=1: changeQuestion(i))
+qplusButton.grid(row=0, column=2, padx=10)
 
 bigString=StringVar()
 bigString.set("12")
