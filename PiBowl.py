@@ -76,7 +76,7 @@ def superQuiz():
         sqString.set("Ph.D")
 
 def sqadd(sqmod):
-    global sq, sqLevel, sqString, plus
+    global sq
     sq = sq+sqmod
     if sq > 3:
         sq -= 3
@@ -310,13 +310,6 @@ def correct():
 	firstWrong=False
 	reset(True)
 
-#def wrong_no_interrupt():
-#	global interrupted, bigLabel, bigString, firstWrong
-#	interrupted=False
-#	bigString.set("")
-#	bigLabel.config(bg=top.cget('bg'))
-#	wrong()
-
 def wrong():
 	global timeLeft, locked, h, TEAMS, pins2, timestart, state, hardware, timing, timeString, minus0, bigString, bigLabel, \
 		deciding, buzzedIn, buzzlock, addScores, changeQuestion, buzzed_in_queue, TIMELIMIT, interrupted, firstWrong, wrongLimit, scores, question, buzzable
@@ -363,9 +356,9 @@ def changeQuestion(amount):
 		for i in range(0,len(scores)):
 			scores[i][question-questionnum].grid_remove()
 			if i < 6:
-				e = Entry(leftframe, text="", width=4, bd=1, bg=rightframe.cget('bg'), justify="center")
+				e = Entry(leftframe, text="", width=4, bd=1, bg=leftframe.cget('bg'), justify="center")
 			else:
-				e = Entry(rightframe, text="", width=4, bd=1, bg=rightframe.cget('bg'), justify="center")
+				e = Entry(leftframe, text="", width=4, bd=1, bg=leftframe.cget('bg'), justify="center")
 			scores[i].append(e)
 			e.grid(row=question, column=i%6, pady=0, padx=0)
 	for i in range(0,len(scores)):
@@ -453,7 +446,7 @@ def dumpScores():
 	message=""
 	for x in range(0,len(scores[0])):
 		message+=str(x+1)+"\t"
-		for y in range(0,5):
+		for y in range(0,6):
 			message+=make3String(scores[y][x].get())
 		message=message+"      "
 		message+="\n"
@@ -558,25 +551,25 @@ for i in range(0,6):
 optionsframe=Frame(top)
 optionsframe.grid(row=3, column=0, rowspan=15, columnspan=4, sticky='n')
 dumpScoresButton=Button(optionsframe, text="Dump Scores", command=dumpScores)
-dumpScoresButton.grid(row=1, column=0, pady=5, columnspan=5)
+dumpScoresButton.grid(row=0, column=0, pady=5, columnspan=5)
 
 teamString=StringVar()
 teamString.set(TEAMS)
 teamAdd=Button(optionsframe, text="-", width=1, command=lambda teammod=-1: teamadd(teammod))
-teamAdd.grid(row=2, column=1, padx=10)
+teamAdd.grid(row=1, column=1, padx=10)
 teamLabel=Label(optionsframe, textvariable=teamString, width=2, justify="center")
-teamLabel.grid(row=2, column=2)
+teamLabel.grid(row=1, column=2)
 teamSub=Button(optionsframe, text="+", width=1, command=lambda teammod=+1: teamadd(teammod))
-teamSub.grid(row=2, column=3, padx=10)
+teamSub.grid(row=1, column=3, padx=10)
 
 sqString=StringVar()
 sqString.set("Freshman")
 teamAdd=Button(optionsframe, text="-", width=1, command=lambda sqmod=-1: sqadd(sqmod))
-teamAdd.grid(row=3, column=1, padx=10)
+teamAdd.grid(row=2, column=1, padx=10)
 teamLabel=Label(optionsframe, textvariable=sqString, width=7, justify="center")
-teamLabel.grid(row=3, column=2)
+teamLabel.grid(row=2, column=2)
 teamSub=Button(optionsframe, text="+", width=1, command=lambda sqmod=+1: sqadd(sqmod))
-teamSub.grid(row=3, column=3, padx=10)
+teamSub.grid(row=2, column=3, padx=10)
 
 rightframe=Frame(top)
 rightframe.grid(row=0, column=7, rowspan=6, columnspan=100)
