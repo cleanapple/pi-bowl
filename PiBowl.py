@@ -7,20 +7,16 @@ import threading
 from pynput import keyboard
 from os import path, system
 
-#To play The SuperQuiz variant, uncomment the sqLabel in the TK section near the bottom.
-
 #Constants
-virtualized=True
+virtualized=False
 pins=[4, 27, 22, 23, 24, 25, 0] #Teams
-pins2=[5, 6, 12, 26] #Hardware buttons fot Yes, No, Edit Score, Open/Reset
-
+pins2=[5, 6, 12, 26] #Hardware buttons fot Yes, No, New Game, Open/Reset
 
 #STATE VARIABLES
 inGame=True
 timing=False			#Currently counting down the timer
 deciding=False			#Right/Wrong decision
 buzzable=-1			#Can be zero for no one, 1 for team 1, 2 for team 2, or -1 for all
-#buzzedIn=-1			#-1 for none, 0-9 for buzzers
 interrupted=False
 firstWrong=False
 wrongLimit=0
@@ -33,102 +29,35 @@ TEAMS=3
 TIMELIMIT=15
 sq = 1
 sqscore=("+1")
+inGame=True
+locked = True
 
 if virtualized==True:
     h=DISABLED
 
 if virtualized==False:
-    import RPi.GPIO as GPIO
-    GPIO.setmode(GPIO.BCM)
-    for i in range(0, len(pins)):
-        GPIO.setup(pins[i], GPIO.IN, GPIO.PUD_UP)
-    for h in range (0, len(pins2)):
-        GPIO.setup(pins2[h], GPIO.IN, GPIO.PUD_UP)
-    GPIO.setup(buzzer,GPIO.OUT)
-
-#while True:
-#    print("Welcome to Knowledge Bowl")
-#    print("Selct Response Time in Seconds: Ne[X]t=5, Edit [S]core=10, [Y]es=15 ")
-#    with keyboard.Events() as events:
-#        event = events.get(1e6)
-#        if event.key == keyboard.KeyCode.from_char('x'):
-#            TIMELIMIT=5
-#            break
-#        if event.key == keyboard.KeyCode.from_char('s'):
-#            TIMELIMIT=10
-#            break
-#        if event.key == keyboard.KeyCode.from_char('y'):
-#            TIMELIMIT=15
-#            break
-#print((TIMELIMIT)," seconds selected")
-
-#print('Buzz in to select number of teams.')
-#while True:
-#    with keyboard.Events() as events:
-#        event = events.get(1e6)
-#        if event.key == keyboard.KeyCode.from_char('a'):
-#            TEAMS=1
-#            break
-#        if event.key == keyboard.KeyCode.from_char('b'):
-#            TEAMS=2
-#            break
-#        if event.key == keyboard.KeyCode.from_char('c'):
-#            TEAMS=3
-#            break
-#        if event.key == keyboard.KeyCode.from_char('d'):
-#           break
-#        if event.key == keyboard.KeyCode.from_char('e'):
-#            TEAMS=5
-#            break
-#        if event.key == keyboard.KeyCode.from_char('f'):
-#            TEAMS=6
-#            break   
-
-#print(TEAMS, "teams selected. ")
-
-
-#print("Press Yes to continue or No to edit selections.")
-#while True:
-#    with keyboard.Events() as events:
-#        event = events.get(1e6)
-#        if event.key == keyboard.KeyCode.from_char('n'):
-#            break
-#        if event.key == keyboard.KeyCode.from_char('y'):
-#            break
-
-
-
-locked = True
+	import RPi.GPIO as GPIO
+	GPIO.setmode(GPIO.BCM)
+	for i in range(0, len(pins)):
+		GPIO.setup(pins[i], GPIO.IN, GPIO.PUD_UP)
+	for h in range (0, len(pins2)):
+		GPIO.setup(pins2[h], GPIO.IN, GPIO.PUD_UP)
+	GPIO.setup(buzzer,GPIO.OUT)
 
 print("Starting Game")
 
-inGame=True
-buzzable=-1
-interrupted=False
-firstWrong=False
-wrongLimit=0
-question=0
-buzzed_in_queue = []
-buzzlock = []
-
-def countmore():
+def count(timemod):
     global TIMELIMIT, timeLeft
-    TIMELIMIT=TIMELIMIT+1
+    TIMELIMIT=TIMELIMIT+timemod
     setTimeString(TIMELIMIT)
 
-def countless():
-    global TIMELIMIT, timeLeft
-    TIMELIMIT=TIMELIMIT-1
-    setTimeString(TIMELIMIT)   
-
-def teamadd():
-   global TEAMS, teamString
-   TEAMS = TEAMS+1
-   teamString.set(TEAMS)
-
-def teamsub():
+def teamadd(teammod):
     global TEAMS, teamString
-    TEAMS=TEAMS-1
+    TEAMS = TEAMS+teammod
+    if TEAMS > 6:
+        TEAMS-=6
+    if TEAMS < 1:
+        TEAMS+=1
     teamString.set(TEAMS)
 
 def superQuiz():
@@ -146,19 +75,13 @@ def superQuiz():
         sqscore=("+3")
         sqString.set("Ph.D")
 
-def sqdown():
+def sqadd(sqmod):
     global sq, sqLevel, sqString, plus
-    sq = sq-1
-    if sq < 1:
-        sq +=1
-    superQuiz()
-
-
-def squp():
-    global sq, sqLevel, sqString
-    sq=sq+1
+    sq = sq+sqmod
     if sq > 3:
         sq -= 3
+    if sq < 1:
+        sq +=1
     superQuiz()
 
 def timer():
@@ -169,8 +92,6 @@ def timer():
 		if (timing):
 			delta = time()-timestart
 			if delta > timeLeft:
-#				buzzable=-1
-#				setButtons()
 				setTimeString("00")
 				threading.Thread(target=timeout).start()
 				sleep (1)
@@ -197,7 +118,6 @@ def setTimeString(string):
 		timeLabel.config(textvariable=timeString)
 		setTimeString(string)
 
-
 def buzzercheck():
 	global locked, pins, pins2, buzzable
 
@@ -214,21 +134,20 @@ def buzzercheck():
 			sleep(.1)
 
 def hardware(h):
-    global locked, buttons, timeLeft, timeLabel, TEAMS, buzzedIn, buzzed_in_queue, deciding, \
-		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, interrupted
-    if h == 0 and len(buzzlock) > 0:
-        correct()
-    if h == 1 and len(buzzlock) > 0:
-        wrong()
-    if h == 2:
-        buzzed_in_queue = []
-        buzzlock=[]
-        changeQuestion(-1)
-    if h == 3:
-        buzzed_in_queue = []
-        buzzlock = []
-        open()
-
+	global locked, buttons, timeLeft, timeLabel, TEAMS, buzzedIn, buzzed_in_queue, deciding, \
+		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, newGame, interrupted
+	if h == 0:
+		if len(buzzed_in_queue) > 0:
+			correct()
+	if h == 1:
+		if len(buzzed_in_queue) > 0:
+			wrong()
+	if h == 2:
+		newGame()
+	if h == 3:
+		buzzed_in_queue = []
+		buzzlock = []
+		open()
 
 def virtualPress(i):
 	global locked, soundLocation, buttons, h, TEAMS, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
@@ -257,12 +176,10 @@ def virtualPress(i):
 				buzzed_in_queue.append(2)
 				buzzlock.append(i)
 				startCountdown
-
 			if i == 2 and i not in buzzlock:
 				buzzed_in_queue.append(3)
 				buzzlock.append(i)
 				startCountdown
-               
 			if i == 3 and i not in buzzlock:
 				buzzed_in_queue.append(4)
 				buzzlock.append(i)
@@ -298,7 +215,7 @@ def playsound(i):
 	global buzzlock
 	if i in buzzlock:
 		GPIO.output(buzzer,GPIO.HIGH)
-		sleep(0.1)
+		sleep(0.125)
 		GPIO.output(buzzer,GPIO.LOW)
 	else:
 		GPIO.output(buzzer,GPIO.LOW)
@@ -323,11 +240,9 @@ def reset(openall):
 	deciding=False
 	setButtons()
 
-def open():
+def open(): #reset buzzers
 	global inGame, wrongLimit, locked, timing, h, hardware, falseStart, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding
-	#inGame=False
 
-	#If ingame, the buzzin was either a challenge or a mistake.
 	if not inGame:
 		falseStart()
 	buzzed_in_queue=[]
@@ -346,12 +261,9 @@ def setButtons(): #AND LABELS TOO
 	global state, buttons, h, hardware, correctButton, wrongButton, timerButton, openButton, timing, interrupted,\
 		bigString, bigLabel, top, inGame, buzzlock, buzzed_in_queue, buzzable, deciding, newGameButton, timerButton
 
-	#False til proven true
 	newGameButton.config(state=DISABLED)
-#	timerButton.config(state=DISABLED)
 	correctButton.config(state=DISABLED)
 	wrongButton.config(state=DISABLED)
-#	wrong2Button.config(state=DISABLED)
 	openButton.config(state=NORMAL)
 	for i in range(0,5): 
 		buttons[i].config(state=NORMAL)
@@ -379,7 +291,6 @@ def startCountdown():
 	global locked, timestart, state, timing, buzzable
 	timestart = time()
 	timing = True
-
 	print("Starting Count")
 	setButtons()
 
@@ -400,17 +311,14 @@ def correct():
 	buzzlock = []
 	buzzed_in_queue = []
 	changeQuestion(1)
-
 	firstWrong=False
 	reset(True)
 
 def wrong_no_interrupt():
 	global interrupted, bigLabel, bigString, firstWrong
 	interrupted=False
-
 	bigString.set("")
 	bigLabel.config(bg=top.cget('bg'))
-
 	wrong()
 
 def wrong():
@@ -469,11 +377,22 @@ def changeQuestion(amount):
 		scores[i][question].config(bg="#eeeeee")
 
 def newGame():
-	global locked, inGame, state, question
+	global locked, inGame, state, question, TEAMS, scores, buttons, TIMELIMIT, sq, buzzlock, buzzed_in_queue, sqscore
 	print(newGame)
 	question=0
 	changeQuestion(0)
+	TIMELIMIT=15
+	TEAMS=3
 	inGame=True
+	for i in range(len(scores)):
+		for j in range(len(scores[i])):
+			scores[i][j].delete(0, 'end')
+			scores[i][j].insert(0, '') 
+	sq==1
+	plus.set("+1")
+	sqscore=("+1")
+	sqString.set("Freshman")	
+	open()
 	reset(True)
 
 def setLabel(label, text):
@@ -487,89 +406,19 @@ def monitorScoresThread():
 		addScores()
 
 def addScores():
-	global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
-	
-	try:
-		sum=0
-		for y in range(0,1):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-				except ValueError:
-					sum+=0
+    global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
 
-		setLabel(score1Label, "Team 1: "+str(sum))
-	except IndexError:
-		print("IndexError")
-	try:
-		sum=0
-		for y in range(1,2):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-				except ValueError:
-					sum+=0
-		setLabel(score2Label, "Team 2: "+str(sum))
-	except IndexError:
-		print("IndexError")              
-	try:
-		sum=0
-		for y in range(2,3):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-				except ValueError:
-					sum+=0
-
-		setLabel(score3Label, "Team 3: "+str(sum))
-	except IndexError:    
- 		print("IndexError")  
-	try:
-		sum=0
-		for y in range(3,4):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-				except ValueError:
-					sum+=0
-		setLabel(score4Label, "Team 4: "+str(sum))
-	except IndexError:
-		print("IndexError")              
-	try:
-		sum=0
-		for y in range(4,5):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-				except ValueError:
-					sum+=0
-
-		setLabel(score5Label, "Team 5: "+str(sum))
-	except IndexError:    
- 		print("IndexError")  
-	try:
-		sum=0
-		for y in range(5,6):
-			for x in range(0,len(scores[y])):
-				try:
-					if x != question:
-						colorCell(scores[y][x])
-					sum+= int(scores[y][x].get())
-				except ValueError:
-					sum+=0
-		setLabel(score6Label, "Team 6: "+str(sum))
-	except IndexError:    
- 		print("IndexError")   
+    labels = [score1Label, score2Label, score3Label, score4Label, score5Label, score6Label]
+    for y in range(len(scores)):
+        sum = 0
+        for x in range(len(scores[y])):
+            try:
+                if x != question:
+                    colorCell(scores[y][x])
+                sum += int(scores[y][x].get())
+            except ValueError:
+                sum += 0
+        setLabel(labels[y], f"Team {y+1}: {sum}") 
 
 def colorCell(cell):
 	global leftframe
@@ -586,24 +435,8 @@ def colorCell(cell):
 	except IndexError:
 		cell.config(bg=leftframe.cget('bg'))
 
-
-#def time_plus():
-#	global timeLeft
-#	timeLeft = timeLeft+5
-#	setTimeString(str(int(timeLeft)))
-
-#def time_minus():
-#	global timeLeft
-#	timeLeft = timeLeft-5
-#	setTimeString(str(int(timeLeft)))
-
 def configure():
 	print("configuring")
-
-
-#def addIndividualScores():
-#	print("Nothing here yet")
-
 
 def dumpScores():
 	global scores
@@ -633,7 +466,6 @@ def make3String(string):
 	else:
 		return "__ "
 
-
 top=Tk()
 
 top.option_add('*Dialog.msg.font', 'Sans 10')
@@ -647,29 +479,21 @@ setTimeString("Ready to Start Countdown!")
 #Label displaying time, and associated buttons
 timeFrame = Frame(top)
 timeFrame.grid(row=0, column=5)
-#Label(timeFrame, text="Time:", justify="right", font=mediumfont).grid(row=0, column=0, sticky='e')
-minusButton=Button(timeFrame, text="-", width=1, command=countless, font=mediumfont)
+minusButton=Button(timeFrame, text="-", width=1, command=lambda timemod=-1: count(timemod), font=mediumfont)
 minusButton.grid(row=0, column=1, padx=10)
 timeLabel=Label(timeFrame, textvariable=timeString, width=2, justify="center", font=bigfont)
 timeLabel.grid(row=0, column=2)
-plusButton=Button(timeFrame, text="+", width=1, command=countmore, font=mediumfont)
+plusButton=Button(timeFrame, text="+", width=1, command=lambda timemod=+1: count(timemod), font=mediumfont)
 plusButton.grid(row=0, column=3, padx=10)
-falseStartButton=Button(timeFrame, text="Reset", width=6, command=falseStart)
+falseStartButton=Button(timeFrame, text="New Game", width=8, command=newGame)
 falseStartButton.grid(row=1, column=2)
-
-
 
 buzzerString=StringVar()
 buzzerString.set("Buzzers Closed")
 buzzerLabel=Label(top, textvariable=buzzerString, justify="center")
-#buzzerLabel.grid(row=2, column=2)
 
 newGameButton = Button(top, text="START", command=newGame, bg="#00ffff", width=15)
 newGameButton.grid(row=1, column=5)
-#newGameButton.pack()buttons[i].grid(row=20, column=i)
-
-#timerButton = Button(top, text="Start Countdown", command=startCountdown, state=DISABLED)
-#timerButton.grid(row=2, column=5)
 
 correctButton = Button(top, text="Right!", command=correct, background="#47e749", font=bigfont)
 correctButton.grid(row=2, column=5)
@@ -678,13 +502,9 @@ wrongFrame = Frame(top)
 wrongFrame.grid(row=3, column=5)
 wrongButton = Button(wrongFrame, text="Wrong", justify="center", command=wrong, bg="#ff6666", font=bigfont)
 wrongButton.grid(row=0, column=1, padx=0)
-#wrong2Button = Button(wrongFrame, width=14, text="(but not interrupted)", command=wrong_no_interrupt, bg="#ff6666")
-#wrong2Button.grid(row=1, column=0, padx=0)
-
 
 openButton = Button(wrongFrame, text="Open buzzers", command=open, bg="#00ffff", width=10)
 openButton.grid(row=2, column=1)
-
 
 #Label dispaying question # and associated buttons
 questionFrame= Frame(top)
@@ -698,12 +518,10 @@ questionLabel.grid(row=3, column=1)
 qplusButton=Button(wrongFrame, text="+", width=1, command=lambda i=1: changeQuestion(i))
 qplusButton.grid(row=3, column=2, padx=10)
 
-
 bigString=StringVar()
 bigString.set("12")
 bigLabel=Label(top, textvariable=bigString, bg="#cccccc", padx=10, pady=10, font=bigfont)
 bigLabel.grid(row=4, sticky='nesw', column=0, columnspan=5)
-
 
 threading.Thread(target=timer, args=()).start()
 if virtualized==False:
@@ -714,7 +532,6 @@ buttons=[]
 questionnum=6
 leftframe=Frame(top)
 leftframe.grid(row=0, column=0, rowspan=15, columnspan=4, sticky='n')
-#leftframe.grid(row=0, column=0)
 for i in range(0,6):
 	buttons.append(Button(leftframe, text=str(i+1), bg=teamcolors[i],
 		command=lambda i=i: virtualPress(i)))
@@ -727,26 +544,25 @@ for i in range(0,6):
 		scores[i].append(e)
 		e.grid(row=j, column=i, pady=0, padx=0)
 
-
 dumpScoresButton=Button(leftframe, text="Dump Scores", command=dumpScores)
 dumpScoresButton.grid(row=210, column=0, pady=5, columnspan=5)
 
 teamString=StringVar()
 teamString.set(TEAMS)
-teamAdd=Button(leftframe, text="-", width=1, command=teamsub)
+teamAdd=Button(leftframe, text="-", width=1, command=lambda teammod=-1: teamadd(teammod))
 teamAdd.grid(row=211, column=1, padx=10)
 teamLabel=Label(leftframe, textvariable=teamString, width=2, justify="center")
 teamLabel.grid(row=211, column=2)
-teamSub=Button(leftframe, text="+", width=1, command=teamadd)
+teamSub=Button(leftframe, text="+", width=1, command=lambda teammod=+1: teamadd(teammod))
 teamSub.grid(row=211, column=3, padx=10)
 
 sqString=StringVar()
 sqString.set("Freshman")
-teamAdd=Button(leftframe, text="-", width=1, command=sqdown)
+teamAdd=Button(leftframe, text="-", width=1, command=lambda sqmod=-1: sqadd(sqmod))
 teamAdd.grid(row=212, column=1, padx=10)
 teamLabel=Label(leftframe, textvariable=sqString, width=7, justify="center")
 teamLabel.grid(row=212, column=2)
-teamSub=Button(leftframe, text="+", width=1, command=squp)
+teamSub=Button(leftframe, text="+", width=1, command=lambda sqmod=+1: sqadd(sqmod))
 teamSub.grid(row=212, column=3, padx=10)
 
 rightframe=Frame(top)
@@ -764,22 +580,6 @@ score5Label.grid(row=5, column=6, columnspan=5, pady=5)
 score6Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[5], bg="#222222")
 score6Label.grid(row=6, column=6, columnspan=5, pady=5)
 
-
-
-#not used rightside options
-#t = IntVar()
-#t.set(1)
-#i = IntVar()
-#i.set(1)
-
-#configFrame=Frame(top)#, bg="#eeeeee")
-#configFrame.grid(row=0, column=100, padx=50)
-#timeCheck=Checkbutton(configFrame, text="Display the running timer?", command=configure, variable=t)
-#timeCheck.grid(row=0, column=0, sticky='w')
-#indivCheck=Checkbutton(configFrame, text="Show individual scores?", command=configure, variable=i)
-#indivCheck.grid(row=1, column=0, sticky='w')
-
-
 minus0=StringVar()
 minus0.set("0")
 
@@ -792,8 +592,6 @@ setButtons()
 
 threading.Thread(target=monitorScoresThread, args=()).start()
 
-
 print("Starting loop...")
-
 
 top.mainloop()
