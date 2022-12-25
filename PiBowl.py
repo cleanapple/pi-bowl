@@ -8,7 +8,7 @@ from pynput import keyboard
 from os import path, system
 
 #Constants
-virtualized=False
+virtualized=True
 pins=[4, 27, 22, 23, 24, 25, 0] #Teams
 pins2=[5, 6, 12, 26] #Hardware buttons fot Yes, No, New Game, Open/Reset
 
@@ -215,7 +215,7 @@ def playsound(i):
 	global buzzlock
 	if i in buzzlock:
 		GPIO.output(buzzer,GPIO.HIGH)
-		sleep(0.125)
+		sleep(0.075)
 		GPIO.output(buzzer,GPIO.LOW)
 	else:
 		GPIO.output(buzzer,GPIO.LOW)
@@ -225,8 +225,7 @@ def timeout():
     sleep(0.5)
     GPIO.output(buzzer,GPIO.LOW)
 
-#reset for the next question
-def reset(openall):
+def reset(openall): #reset for the next question
 	global state, locked, timestart, timeLeft, TIMELIMIT, deciding, buzzedIn, buzzed_in_queue, timing, timeLeft, \
 		correctButton, wrongButton, timeString, bigString, bigLabel, top, buzzable, firstWrong
 	if openall:
@@ -376,7 +375,7 @@ def changeQuestion(amount):
 		setLabel(scores[i][question], "")
 		scores[i][question].config(bg="#eeeeee")
 
-def newGame():
+def newGame(): #reset everything and prepare for a new game
 	global locked, inGame, state, question, TEAMS, scores, buttons, TIMELIMIT, sq, buzzlock, buzzed_in_queue, sqscore
 	print(newGame)
 	question=0
@@ -521,7 +520,7 @@ qplusButton.grid(row=3, column=2, padx=10)
 bigString=StringVar()
 bigString.set("12")
 bigLabel=Label(top, textvariable=bigString, bg="#cccccc", padx=10, pady=10, font=bigfont)
-bigLabel.grid(row=4, sticky='nesw', column=0, columnspan=5)
+bigLabel.grid(row=7, sticky='swen', column=0, columnspan=100)
 
 threading.Thread(target=timer, args=()).start()
 if virtualized==False:
@@ -544,26 +543,28 @@ for i in range(0,6):
 		scores[i].append(e)
 		e.grid(row=j, column=i, pady=0, padx=0)
 
-dumpScoresButton=Button(leftframe, text="Dump Scores", command=dumpScores)
-dumpScoresButton.grid(row=210, column=0, pady=5, columnspan=5)
+optionsframe=Frame(top)
+optionsframe.grid(row=3, column=0, rowspan=15, columnspan=4, sticky='n')
+dumpScoresButton=Button(optionsframe, text="Dump Scores", command=dumpScores)
+dumpScoresButton.grid(row=1, column=0, pady=5, columnspan=5)
 
 teamString=StringVar()
 teamString.set(TEAMS)
-teamAdd=Button(leftframe, text="-", width=1, command=lambda teammod=-1: teamadd(teammod))
-teamAdd.grid(row=211, column=1, padx=10)
-teamLabel=Label(leftframe, textvariable=teamString, width=2, justify="center")
-teamLabel.grid(row=211, column=2)
-teamSub=Button(leftframe, text="+", width=1, command=lambda teammod=+1: teamadd(teammod))
-teamSub.grid(row=211, column=3, padx=10)
+teamAdd=Button(optionsframe, text="-", width=1, command=lambda teammod=-1: teamadd(teammod))
+teamAdd.grid(row=2, column=1, padx=10)
+teamLabel=Label(optionsframe, textvariable=teamString, width=2, justify="center")
+teamLabel.grid(row=2, column=2)
+teamSub=Button(optionsframe, text="+", width=1, command=lambda teammod=+1: teamadd(teammod))
+teamSub.grid(row=2, column=3, padx=10)
 
 sqString=StringVar()
 sqString.set("Freshman")
-teamAdd=Button(leftframe, text="-", width=1, command=lambda sqmod=-1: sqadd(sqmod))
-teamAdd.grid(row=212, column=1, padx=10)
-teamLabel=Label(leftframe, textvariable=sqString, width=7, justify="center")
-teamLabel.grid(row=212, column=2)
-teamSub=Button(leftframe, text="+", width=1, command=lambda sqmod=+1: sqadd(sqmod))
-teamSub.grid(row=212, column=3, padx=10)
+teamAdd=Button(optionsframe, text="-", width=1, command=lambda sqmod=-1: sqadd(sqmod))
+teamAdd.grid(row=3, column=1, padx=10)
+teamLabel=Label(optionsframe, textvariable=sqString, width=7, justify="center")
+teamLabel.grid(row=3, column=2)
+teamSub=Button(optionsframe, text="+", width=1, command=lambda sqmod=+1: sqadd(sqmod))
+teamSub.grid(row=3, column=3, padx=10)
 
 rightframe=Frame(top)
 rightframe.grid(row=0, column=7, rowspan=6, columnspan=100)
