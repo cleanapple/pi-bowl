@@ -8,9 +8,9 @@ from pynput import keyboard
 from os import path, system
 
 #Constants
-virtualized=True
+virtualized=False
 pins=[4, 27, 22, 23, 24, 25, 0] #Teams
-pins2=[5, 6, 12, 26] #Hardware buttons fot Yes, No, New Game, Open/Reset
+pins2=[5, 6, 12, 26, 14, 15] #Hardware buttons fot Yes, No, Clear/Open, Edit Score, New Game, Quit
 
 #STATE VARIABLES
 inGame=True
@@ -24,13 +24,23 @@ question=0
 buzzed_in_queue = []
 buzzlock = []
 buzzer=19
-teamcolors = ["#37d67a", "#fcb900", "#9979d2", "#ffff00", "#79abd2", "#f78da7"]
+teamcolors = ["#37d67a", "#fcb900", "#9979d2", "#ffff00", "#79abd2", "#f78da7", "#f78da7"]
 TEAMS=3
 TIMELIMIT=15
 sq = 1
 sqscore=("+1")
 inGame=True
 locked = True
+scoreMod1=0
+scoreMod2=0
+scoreMod3=0
+scoreMod4=0
+scoreMod5=0
+scoreMod6=0
+quitcheck=False
+newcheck=False
+team_score = 0
+editing_scores = False
 
 if virtualized==True:
     h=DISABLED
@@ -158,71 +168,105 @@ def buzzercheck():
 			sleep(.1)
 
 def hardware(h):
-	global locked, buttons, timeLeft, timeLabel, TEAMS, buzzedIn, buzzed_in_queue, deciding, \
-		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, newGame, interrupted
+	global locked, buttons, timeLeft, timeLabel, TEAMS, buzzedIn, buzzed_in_queue, deciding, quitcheck, newcheck, \
+		state, bigLabel, bigString, buzzlock, teamcolors, editing_scores, inGame, timing, buzzable, newGame, interrupted, team_score
+
+	score_functions = [score1, score2, score3, score4, score5, score6]
+
+#Blue Correct/Yes Button
 	if h == 0:
-		if len(buzzed_in_queue) > 0:
+		if len(buzzed_in_queue) > 0 and editing_scores == False:
 			correct()
+		elif quitcheck==True:
+			top.destroy()
+			top.quit()
+		elif newcheck==True:
+			newcheck=False
+			newGame()
+		elif editing_scores:
+			# Add one point from the score of the currently selected team
+			score_functions[team_score - 1](+1)
+			sleep(.3)
+
+#Red Wrong/No Button
 	if h == 1:
-		if len(buzzed_in_queue) > 0:
+		if len(buzzed_in_queue) > 0 and editing_scores==False:
 			wrong()
+		elif quitcheck==True:
+			buzzed_in_queue = []
+			buzzlock = []
+			open()
+		elif newcheck==True:
+			newcheck=False
+			open()
+		elif editing_scores:
+			# Subtract one point from the score of the currently selected team
+			score_functions[team_score - 1](-1)
+			sleep(.3)
+
+#right side -- Edit Scores
 	if h == 2:
-		newGame()
+		if not editing_scores:
+			editing_scores = True
+			bigString.set("Editing Scores")
+		else:
+			team_score += 1
+			if team_score > 6:
+				team_score = 1
+			if team_score < 1:
+				team_score =1    
+			bigString.set(f"Edit Team {team_score}")
+#			bigLabel.config(bg=teamcolors[team_score])
+			sleep(.2)
+#left side
 	if h == 3:
-		buzzed_in_queue = []
-		buzzlock = []
-		open()
+		if not editing_scores:
+			buzzed_in_queue = []
+			buzzlock = []
+			open()
+		if editing_scores:
+			editing_scores=False
+			bigString.set(" ")
+#			bigLabel.config(bg=" ")			
+			open()
+
+#side buttons
+	if h == 4:
+		newconfirm()
+	if h == 5:
+		close()            
 
 def virtualPress(i):
-	global locked, soundLocation, buttons, h, TEAMS, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
-		state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, interrupted
-	print("buzzable=",buzzable)
-	if buzzable==-1 or buzzable==int(i/9)+1:
-		if inGame:
-			buzzable=-1
-			deciding=True
-			timeLeft=int(timeString.get())
-		buzzable=-1
-		humanBuzzerNum=i
-		if humanBuzzerNum>9:
-			humanBuzzerNum-=9
-		interrupted=not timing
-		timing=False
-		buzzerString.set("Locked: Buzzer "+str(humanBuzzerNum))
-		threading.Thread(target=flashLock, args=(i,)).start()
+    global locked, soundLocation, buttons, h, TEAMS, timeLeft, timeLabel, buzzedIn, buzzed_in_queue, deciding, \
+        state, bigLabel, bigString, buzzlock, teamcolors, inGame, timing, buzzable, interrupted
 
-		if i not in buzzlock:
-			if i == 0 and i not in buzzlock:
-				buzzed_in_queue.append(1)
-				buzzlock.append(i)
-				startCountdown
-			if i == 1 and i not in buzzlock:
-				buzzed_in_queue.append(2)
-				buzzlock.append(i)
-				startCountdown
-			if i == 2 and i not in buzzlock:
-				buzzed_in_queue.append(3)
-				buzzlock.append(i)
-				startCountdown
-			if i == 3 and i not in buzzlock:
-				buzzed_in_queue.append(4)
-				buzzlock.append(i)
-				startCountdown                
-			if i == 4 and i not in buzzlock:
-				buzzed_in_queue.append(5)
-				buzzlock.append(i)
-				startCountdown                
-			if i == 5 and i not in buzzlock:
-				buzzed_in_queue.append(6)
-				buzzlock.append(i)
-				startCountdown                
-		setButtons()
-		if len(buzzed_in_queue) > 0:
-			bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])
-			bigString.set(buzzed_in_queue)
-		threading.Thread(target=playsound, args=(i,)).start()
-		if len(buzzed_in_queue) > 0:
-			startCountdown()
+    print("buzzable=",buzzable)
+    if buzzable==-1 or buzzable==int(i/9)+1:
+        if inGame:
+            buzzable=-1
+            deciding=True
+            timeLeft=int(timeString.get())
+        buzzable=-1
+        humanBuzzerNum=i
+        if humanBuzzerNum>9:
+            humanBuzzerNum-=9
+        interrupted=not timing
+        timing=False
+        buzzerString.set("Locked: Buzzer "+str(humanBuzzerNum))
+        threading.Thread(target=flashLock, args=(i,)).start()
+
+        if i not in buzzlock:
+            team_num = i % 6 + 1 #FUTURE can be TEAMS+1 but I want people to pick whatever colors they want
+            buzzed_in_queue.append(team_num)
+            buzzlock.append(i)
+            startCountdown()
+        setButtons()
+        if len(buzzed_in_queue) > 0:
+            bigLabel.config(bg=teamcolors[buzzed_in_queue[0]-1])
+            bigString.set(buzzed_in_queue)
+        threading.Thread(target=playsound, args=(i,)).start()
+        if len(buzzed_in_queue) > 0:
+            startCountdown()
 
 def flashLock(i):
 	global locked, buttons, buzzedIn, buzzed_in_queue
@@ -263,7 +307,7 @@ def reset(openall): #reset for the next question
 	setButtons()
 
 def open(): #reset buzzers
-	global inGame, wrongLimit, locked, timing, h, hardware, falseStart, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding
+	global inGame, wrongLimit, locked, timing, h, hardware, falseStart, timeString, state, buzzlock, buzzable, buzzedIn, buzzed_in_queue, deciding, newcheck, quitcheck
 
 	if not inGame:
 		falseStart()
@@ -272,6 +316,8 @@ def open(): #reset buzzers
 	wrongLimit = 0
 	buzzable=-1
 	buzzedIn=-1
+	quitcheck=False
+	newcheck=False
 	falseStart()
 	timing=False
 	deciding=False
@@ -392,6 +438,7 @@ def changeQuestion(amount):
 def newGame(): #reset everything and prepare for a new game
 	global locked, inGame, state, question, TEAMS, scores, buttons, TIMELIMIT, sq, buzzlock, buzzed_in_queue, sqscore, scores, buttons, questionnum, leftframe, scoreMod1, scoreMod2, scoreMod3, scoreMod4, scoreMod5, scoreMod6
 	print(newGame)
+
 # Destroy all widgets in the leftframe
 	for widget in leftframe.winfo_children():
 		widget.destroy()
@@ -439,7 +486,7 @@ def monitorScoresThread():
 		addScores()
 
 def addScores():
-    global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe
+    global scores, score1Label, score2Label, score3Label, score4Label, score4Label, score5Label, score6Label, leftframe, rightframe, scoreMod1, scoreMod2, scoreMod3, scoreMod4, scoreMod5, scoreMod6
 
     labels = [score1Label, score2Label, score3Label, score4Label, score5Label, score6Label]
     for y in range(len(scores)):
@@ -451,7 +498,9 @@ def addScores():
                 sum += int(scores[y][x].get())
             except ValueError:
                 sum += 0
-        setLabel(labels[y], f"Team {y+1}: {sum}") 
+        score_mods = [scoreMod1, scoreMod2, scoreMod3, scoreMod4, scoreMod5, scoreMod6]
+        sum += score_mods[y]
+        setLabel(labels[y], f"Team {y+1}: {sum}")
 
 def colorCell(cell):
 	global leftframe
@@ -498,6 +547,21 @@ def make3String(string):
 		return "3 "		
 	else:
 		return "__ "
+
+def newconfirm(): #hardware button quitting
+    global bigString, h, newcheck
+    bigString.set("Start New Game? Y/N")
+    newcheck=True
+
+def close(): #hardware button quitting
+    global bigString, h, quitcheck
+    print("Attempting to quit!")
+    bigString.set("Really quit? Y/N")
+    quitcheck=True
+
+def quit(): #GUI button quitting
+	top.destroy()
+	top.quit()
 
 top=Tk()
 
@@ -579,7 +643,7 @@ for i in range(0,6):
 		e.grid(row=j, column=i, pady=0, padx=0)
 
 optionsframe=Frame(top)
-optionsframe.grid(row=3, column=0, rowspan=15, columnspan=4, sticky='n')
+optionsframe.grid(row=2, column=0, rowspan=15, columnspan=4)
 dumpScoresButton=Button(optionsframe, text="Dump Scores", command=dumpScores)
 dumpScoresButton.grid(row=0, column=0, pady=5, columnspan=5)
 
@@ -600,6 +664,10 @@ teamLabel=Label(optionsframe, textvariable=sqString, width=7, justify="center")
 teamLabel.grid(row=2, column=2)
 teamSub=Button(optionsframe, text="+", width=1, command=lambda sqmod=+1: sqadd(sqmod))
 teamSub.grid(row=2, column=3, padx=10)
+
+quitButton = Button(optionsframe, text="Quit", justify="center", command=quit, bg="#FFC0CB", width=10)
+quitButton.grid(row=3, column=2)
+
 
 rightframe=Frame(top)
 rightframe.grid(row=0, column=7, rowspan=6, columnspan=100)
