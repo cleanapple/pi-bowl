@@ -84,6 +84,30 @@ def sqadd(sqmod):
         sq +=1
     superQuiz()
 
+def score1(sc): #add or subtract points with the edit score buttons
+    global scoreMod1
+    scoreMod1=scoreMod1+sc
+
+def score2(sc):
+    global scoreMod2
+    scoreMod2=scoreMod2+sc
+
+def score3(sc):
+    global scoreMod3
+    scoreMod3=scoreMod3+sc
+
+def score4(sc):
+    global scoreMod4
+    scoreMod4=scoreMod4+sc
+
+def score5(sc):
+    global scoreMod5
+    scoreMod5=scoreMod5+sc
+
+def score6(sc):
+    global scoreMod6
+    scoreMod6=scoreMod6+sc 
+
 def timer():
 	global timestart, timeString, TIMELIMIT, timeLeft, locked, \
 		   inGame, timing, buzzable, timeLabel, question
@@ -366,7 +390,7 @@ def changeQuestion(amount):
 		scores[i][question].config(bg="#eeeeee")
 
 def newGame(): #reset everything and prepare for a new game
-	global locked, inGame, state, question, TEAMS, scores, buttons, TIMELIMIT, sq, buzzlock, buzzed_in_queue, sqscore, scores, buttons, questionnum, leftframe
+	global locked, inGame, state, question, TEAMS, scores, buttons, TIMELIMIT, sq, buzzlock, buzzed_in_queue, sqscore, scores, buttons, questionnum, leftframe, scoreMod1, scoreMod2, scoreMod3, scoreMod4, scoreMod5, scoreMod6
 	print(newGame)
 # Destroy all widgets in the leftframe
 	for widget in leftframe.winfo_children():
@@ -386,6 +410,12 @@ def newGame(): #reset everything and prepare for a new game
 			e = Entry(leftframe, textvariable=string, width=4, bd=1,  bg=leftframe.cget('bg'), justify="center")
 			scores[i].append(e)
 			e.grid(row=j, column=i, pady=0, padx=0)
+	scoreMod1=0
+	scoreMod2=0
+	scoreMod3=0
+	scoreMod4=0
+	scoreMod5=0
+	scoreMod6=0
 	question=0
 	changeQuestion(0)
 	TIMELIMIT=15
@@ -575,16 +605,44 @@ rightframe=Frame(top)
 rightframe.grid(row=0, column=7, rowspan=6, columnspan=100)
 score1Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[0], bg="#222222")
 score1Label.grid(row=1, column=6, columnspan=5, pady=5)
+team1plusButton=Button(rightframe, text="+", font=mediumfont, width=2, command = lambda sc=+1: score1(sc))
+team1plusButton.grid(row=1, column=15, pady=1)
+team1plusButton=Button(rightframe, text="-", font=mediumfont, width=2, command = lambda sc=-1: score1(sc))
+team1plusButton.grid(row=1, column=17, pady=1)
 score2Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[1], bg="#222222")
 score2Label.grid(row=2, column=6, columnspan=5, pady=5)
+team2plusButton=Button(rightframe, text="+", font=mediumfont, width=2, command = lambda sc=+1: score2(sc))
+team2plusButton.grid(row=2, column=15, pady=1)
+team2plusButton=Button(rightframe, text="-", font=mediumfont, width=2, command = lambda sc=-1: score2(sc))
+team2plusButton.grid(row=2, column=17, pady=1)
+
 score3Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[2], bg="#222222")
 score3Label.grid(row=3, column=6, columnspan=5, pady=5)
+team3plusButton=Button(rightframe, text="+", font=mediumfont, width=2, command = lambda sc=+1: score3(sc))
+team3plusButton.grid(row=3, column=15, pady=1)
+team3plusButton=Button(rightframe, text="-", font=mediumfont, width=2, command = lambda sc=-1: score3(sc))
+team3plusButton.grid(row=3, column=17, pady=1)
+
 score4Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[3], bg="#222222")
 score4Label.grid(row=4, column=6, columnspan=5, pady=5)
+team4plusButton=Button(rightframe, text="+", font=mediumfont, width=2, command = lambda sc=+1: score4(sc))
+team4plusButton.grid(row=4, column=15, pady=1)
+team4plusButton=Button(rightframe, text="-", font=mediumfont, width=2, command = lambda sc=-1: score4(sc))
+team4plusButton.grid(row=4, column=17, pady=1)
+
 score5Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[4], bg="#222222")
 score5Label.grid(row=5, column=6, columnspan=5, pady=5)
+team5plusButton=Button(rightframe, text="+", font=mediumfont, width=2, command = lambda sc=+1: score5(sc))
+team5plusButton.grid(row=5, column=15, pady=1)
+team5plusButton=Button(rightframe, text="-", font=mediumfont, width=2, command = lambda sc=-1: score5(sc))
+team5plusButton.grid(row=5, column=17, pady=1)
+
 score6Label=Label(rightframe, justify="right", padx=5, font=bigfont, fg=teamcolors[5], bg="#222222")
 score6Label.grid(row=6, column=6, columnspan=5, pady=5)
+team6plusButton=Button(rightframe, text="+", font=mediumfont, width=2, command = lambda sc=+1: score6(sc))
+team6plusButton.grid(row=6, column=15, pady=1)
+team6plusButton=Button(rightframe, text="-", font=mediumfont, width=2, command = lambda sc=-1: score6(sc))
+team6plusButton.grid(row=6, column=17, pady=1)
 
 minus0=StringVar()
 minus0.set("0")
